@@ -1,0 +1,21 @@
+{
+  "name": "Minto OS",
+  "short_name": "Minto",
+  "description": "Cognitive Operating System",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    {
+      "src": "639d7715983578b450da3fae_mintopng.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "639d7715983578b450da3fae_mintopng.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
