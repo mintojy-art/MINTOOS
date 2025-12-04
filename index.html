@@ -25,6 +25,13 @@
         .input-zen:focus { outline: none; border-color: var(--lime-accent); }
         @media screen and (max-width: 768px) { input, textarea, select { font-size: 16px !important; } }
 
+        /* Safari Date Input Fix */
+        input[type="date"], input[type="time"] {
+            color-scheme: dark;
+            color: white;
+            min-height: 40px;
+        }
+
         /* Note Colors */
         .note-color-default { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
         .note-color-red { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); }
@@ -33,16 +40,13 @@
         .note-color-yellow { background: rgba(234,179,8,0.15); border-color: rgba(234,179,8,0.3); }
         .note-color-purple { background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.3); }
 
-        /* Selected Color Indicator */
         .color-swatch { cursor: pointer; transition: transform 0.2s; }
         .color-swatch:active { transform: scale(0.9); }
         .color-swatch.selected { border: 2px solid white; box-shadow: 0 0 10px rgba(255,255,255,0.2); }
 
-        /* Month Picker */
         .month-selector-btn { position: relative; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 4px 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; overflow: hidden; }
         .month-selector-btn input { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
 
-        /* Breathing Circle */
         .breath-ring-container { position: relative; width: 260px; height: 260px; display: flex; align-items: center; justify-content: center; }
         .breath-ring-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
         .breath-ring-circle-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
@@ -62,7 +66,6 @@
         .progress-bg { background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
         .progress-fill { background: var(--lime-accent); height: 100%; transition: width 1s ease; }
         
-        /* Bento Cards */
         .bento-card { background: #121212; border-radius: 32px; position: relative; overflow: hidden; transition: transform 0.2s; border: 1px solid #1f1f1f; }
         .bento-card:active { transform: scale(0.98); }
         .bento-card.accent { background: var(--lime-accent); color: black; border: none; }
@@ -115,26 +118,31 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
+                    <!-- Defrag -->
                     <button onclick="window.showScreen('DEFRAG')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
                         <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="list-checks" class="w-4 h-4"></i></div>
                         <div><h3 class="text-sm font-medium text-white">Morning<br>Defrag</h3><p class="text-[10px] text-gray-500">Priorities</p></div>
                     </button>
 
+                    <!-- System Cooling -->
                     <button onclick="window.showScreen('CALIBRATION')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
                         <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="wind" class="w-4 h-4 text-blue-300"></i></div>
                         <div><h3 class="text-sm font-medium text-white">System<br>Cooling</h3><p class="text-[10px] text-gray-500">Regulate</p></div>
                     </button>
 
+                    <!-- Notepad -->
                     <button onclick="window.showScreen('NOTEPAD')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
                         <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="sticky-note" class="w-4 h-4"></i></div>
                         <div><h3 class="text-sm font-medium text-white">Quick<br>Notes</h3><p class="text-[10px] text-gray-500">Ideas</p></div>
                     </button>
 
+                    <!-- Calendar -->
                     <button onclick="window.showScreen('CALENDAR')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
                         <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="calendar-days" class="w-4 h-4"></i></div>
                         <div><h3 class="text-sm font-medium text-white">Schedule<br>& G-Cal</h3><p class="text-[10px] text-gray-500">Events</p></div>
                     </button>
 
+                    <!-- Budget (Wide) -->
                     <button onclick="window.showScreen('BUDGET')" class="col-span-2 glass-card p-4 flex justify-between items-center text-left hover:bg-white/5">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-[var(--lime-accent)] flex items-center justify-center text-black"><i data-lucide="pie-chart" class="w-5 h-5"></i></div>
@@ -143,6 +151,7 @@
                         <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
                     </button>
 
+                    <!-- Simulator (Wide) -->
                     <button onclick="window.showScreen('SIMULATOR')" class="col-span-2 glass-card p-4 flex justify-between items-center text-left hover:bg-white/5">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="message-square" class="w-5 h-5"></i></div>
@@ -151,6 +160,7 @@
                         <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
                     </button>
 
+                    <!-- Moral (Wide) -->
                     <button onclick="window.showScreen('MORAL')" class="col-span-2 glass-card p-4 flex justify-between items-center text-left hover:bg-white/5">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="shield" class="w-5 h-5"></i></div>
@@ -164,9 +174,14 @@
             <!-- DEFRAG -->
             <div id="screen-DEFRAG" class="screen-content hidden flex flex-col h-full">
                 <div class="flex items-center gap-2 mb-6 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
-                <h2 class="text-2xl text-white font-light mb-1">Morning Defrag</h2>
-                <p id="defrag-date-display" class="text-xs text-[#D4F937] mb-6 font-mono">Loading Date...</p>
-                <div id="defrag-list" class="space-y-3 flex-1"></div>
+                <div class="flex justify-between items-end mb-6">
+                    <div><h2 class="text-2xl text-white font-light">Morning Defrag</h2><p id="defrag-date-display" class="text-xs text-[#D4F937] font-mono">Loading Date...</p></div>
+                    <div id="defrag-status" class="text-[10px] text-gray-400">Saved</div>
+                </div>
+                
+                <!-- Fixed: Inputs are rendered once, only values update on typing -->
+                <div id="defrag-list" class="space-y-4 flex-1"></div>
+                
                 <div class="mt-4 p-4 bg-[#111] rounded-2xl border border-[#222]">
                     <h3 class="text-xs text-gray-500 uppercase mb-2">AI Optimization</h3>
                     <p id="defrag-ai-suggestion" class="text-sm text-gray-300 italic">"Enter tasks above and click refine..."</p>
@@ -249,7 +264,7 @@
                 </div>
             </div>
 
-            <!-- NOTEPAD (FIXED) -->
+            <!-- NOTEPAD -->
             <div id="screen-NOTEPAD" class="screen-content hidden flex flex-col h-full">
                 <div class="flex items-center gap-2 mb-4 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
                 <div class="flex gap-2 mb-4">
@@ -312,8 +327,8 @@
     <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, getRedirectResult, signInWithRedirect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- CONFIG ---
         const firebaseConfig = {
@@ -343,7 +358,7 @@
         ];
 
         let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], simData: { P1:'', R:'', E:'', P2:'' } };
-        let app, db, auth, userRef, breatheInterval, currentNoteId = null;
+        let app, db, auth, userRef, breatheInterval, currentNoteId = null, defragDebounce;
 
         // UTILS
         function safeSetText(id, val) { const el=document.getElementById(id); if(el) el.innerText=val; }
@@ -365,7 +380,12 @@
             handleAuth: async () => {
                 if(!auth) return alert("Config Missing");
                 if(auth.currentUser) { await signOut(auth); location.reload(); }
-                else { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e) { alert(e.message); } }
+                else { 
+                    // Safari Redirect Fallback
+                    const provider = new GoogleAuthProvider();
+                    try { await signInWithPopup(auth, provider); } 
+                    catch(e) { if (e.code === 'auth/popup-blocked') await signInWithRedirect(auth, provider); else alert(e.message); } 
+                }
             },
             // Budget
             changeMonth: (val) => { if(val) { appState.currentMonth=val; document.getElementById('month-display-text').innerText=val; saveData(); renderBudget(); } },
@@ -398,7 +418,6 @@
                 const grid = document.getElementById('notes-grid'); grid.innerHTML = '';
                 const query = document.getElementById('note-search').value.toLowerCase();
                 const folder = appState.notepad.activeFolder;
-                // Ensure array
                 if(!Array.isArray(appState.notepad.notes)) appState.notepad.notes = [];
                 
                 const notes = appState.notepad.notes.filter(n => (n.title.toLowerCase().includes(query) || n.body.toLowerCase().includes(query)) && (folder === 'All' || n.folder === folder)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
@@ -416,14 +435,12 @@
             openNoteEditor: (id=null) => {
                 currentNoteId = id;
                 document.getElementById('note-editor-modal').classList.remove('hidden');
-                // Reset Selection Visuals
                 document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
                 
                 if(id) {
                     const note = appState.notepad.notes.find(n=>n.id===id);
                     document.getElementById('editor-title').value=note.title; document.getElementById('editor-body').value=note.body;
                     document.getElementById('btn-pin').classList.toggle('text-[var(--lime-accent)]', note.pinned);
-                    // Highlight color
                     const colorId = `color-${note.color || 'default'}`;
                     const colorEl = document.getElementById(colorId);
                     if(colorEl) colorEl.classList.add('selected');
@@ -438,12 +455,8 @@
             saveNoteAndClose: () => {
                 const title = document.getElementById('editor-title').value;
                 const body = document.getElementById('editor-body').value;
-                
-                // Get active color from UI state if not explicitly set during edit, OR define default
                 let activeColor = 'default';
-                document.querySelectorAll('.color-swatch').forEach(s => {
-                     if(s.classList.contains('selected')) activeColor = s.id.replace('color-', '');
-                });
+                document.querySelectorAll('.color-swatch').forEach(s => { if(s.classList.contains('selected')) activeColor = s.id.replace('color-', ''); });
 
                 if(!title && !body) return window.closeNoteEditor();
                 
@@ -468,18 +481,13 @@
                     const n=appState.notepad.notes.find(x=>x.id===currentNoteId); 
                     n.pinned=!n.pinned; 
                     document.getElementById('btn-pin').classList.toggle('text-[var(--lime-accent)]', n.pinned); 
-                    saveData(); // FIX: Immediate save
+                    saveData(); 
                 } 
             },
             setNoteColor: (c) => { 
-                // UI Update
                 document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
                 document.getElementById(`color-${c}`).classList.add('selected');
-                
-                if(currentNoteId) { 
-                    const note = appState.notepad.notes.find(x=>x.id===currentNoteId); 
-                    if(note) { note.color=c; saveData(); } // FIX: Immediate save
-                } 
+                if(currentNoteId) { const note = appState.notepad.notes.find(x=>x.id===currentNoteId); if(note) { note.color=c; saveData(); } } 
             },
             changeFolder: (f) => {
                 appState.notepad.activeFolder = f;
@@ -495,8 +503,13 @@
                 appState.defragHistory[d][i].done = !appState.defragHistory[d][i].done; saveData(); renderDefrag();
             },
             updateDefrag: (i, v) => {
+                // Debounce to prevent lag
                 const d = new Date().toISOString().split('T')[0]; ensureDefrag(d);
-                appState.defragHistory[d][i].text = v; saveData();
+                appState.defragHistory[d][i].text = v;
+                
+                safeSetText('defrag-status', 'Saving...');
+                clearTimeout(defragDebounce);
+                defragDebounce = setTimeout(() => { saveData(); safeSetText('defrag-status', 'Saved'); }, 1000);
             },
             resetDefrag: () => {
                 const d = new Date().toISOString().split('T')[0];
@@ -734,6 +747,12 @@
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
+                    
+                    enableIndexedDbPersistence(db).catch((err) => {
+                         if (err.code == 'failed-precondition') { console.log('Tabs open'); } 
+                         else if (err.code == 'unimplemented') { console.log('No browser support'); }
+                    });
+
                     onAuthStateChanged(auth, (u) => {
                         if(u) {
                             safeSetText('system-status-text', "Online");
