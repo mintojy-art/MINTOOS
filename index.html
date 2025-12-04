@@ -4,167 +4,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Minto OS</title>
-    
-    <!-- PWA: Makes it an App -->
+    <title>Minto OS - Ultimate Fixed</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <link rel="apple-touch-icon" href="639d7715983578b450da3fae_mintopng.png.png">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest" defer></script>
-    
-    <!-- Styles (Condensed for reliability) -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        :root { --lime-accent: #D4F937; --text-main: #ffffff; }
-        body { background-color: #050505; color: var(--text-main); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; }
-        .glass-panel { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; }
-        .btn-primary { background-color: var(--lime-accent); color: #000; font-weight: 600; border-radius: 99px; transition: 0.2s; }
-        .btn-primary:active { transform: scale(0.95); }
-        .input-zen { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; outline: none; }
-        .input-zen:focus { border-color: var(--lime-accent); }
-        @media screen and (max-width: 768px) { input, textarea, select { font-size: 16px !important; } }
-        .hidden { display: none !important; }
         
-        /* Specific UI Elements */
-        .bento-card { background: #121212; border-radius: 32px; position: relative; overflow: hidden; border: 1px solid #1f1f1f; transition: transform 0.2s; }
+        :root { --lime-accent: #D4F937; --glass-bg: rgba(255, 255, 255, 0.03); --glass-border: rgba(255, 255, 255, 0.08); --text-main: #ffffff; }
+        body { background-color: #050505; color: var(--text-main); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        
+        .glass-card { background: var(--glass-bg); backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-radius: 24px; transition: background 0.2s; }
+        .glass-card:active { background: rgba(255,255,255,0.05); }
+        .glass-panel { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; }
+        .btn-primary { background-color: var(--lime-accent); color: #000; font-weight: 600; border-radius: 9999px; transition: all 0.2s; }
+        .btn-primary:active { transform: scale(0.95); }
+        .input-zen { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: white; }
+        .input-zen:focus { outline: none; border-color: var(--lime-accent); }
+        @media screen and (max-width: 768px) { input, textarea, select { font-size: 16px !important; } }
+
+        /* Safari Date Input Fix */
+        input[type="date"], input[type="time"] {
+            color-scheme: dark;
+            color: white;
+            min-height: 40px;
+        }
+
+        /* Note Colors */
+        .note-color-default { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+        .note-color-red { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); }
+        .note-color-blue { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.3); }
+        .note-color-green { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); }
+        .note-color-yellow { background: rgba(234,179,8,0.15); border-color: rgba(234,179,8,0.3); }
+        .note-color-purple { background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.3); }
+
+        .color-swatch { cursor: pointer; transition: transform 0.2s; }
+        .color-swatch:active { transform: scale(0.9); }
+        .color-swatch.selected { border: 2px solid white; box-shadow: 0 0 10px rgba(255,255,255,0.2); }
+
+        .month-selector-btn { position: relative; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 4px 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; overflow: hidden; }
+        .month-selector-btn input { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
+
+        .breath-ring-container { position: relative; width: 260px; height: 260px; display: flex; align-items: center; justify-content: center; }
+        .breath-ring-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+        .breath-ring-circle-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
+        .breath-ring-circle { fill: none; stroke: var(--lime-accent); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 753; stroke-dashoffset: 753; transition: stroke-dashoffset 0.5s linear; }
+        .breath-inner-circle { width: 180px; height: 180px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s ease-in-out; }
+        .breath-state-btn { border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; color: #888; font-size: 12px; transition: all 0.2s; }
+        .breath-state-btn.active { background: var(--lime-accent); color: black; border-color: var(--lime-accent); font-weight: bold; }
+
+        .hidden { display: none !important; }
+        .checkbox-zen { appearance: none; width: 24px; height: 24px; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; position: relative; }
+        .checkbox-zen:checked { background: var(--lime-accent); border-color: var(--lime-accent); }
+        .checkbox-zen:checked::after { content: '✓'; position: absolute; color: black; font-size: 16px; font-weight: bold; left: 6px; top: 0px; }
+        
+        .chat-bubble { max-width: 80%; padding: 10px 14px; border-radius: 16px; margin-bottom: 8px; font-size: 13px; }
+        .chat-user { background: var(--lime-accent); color: black; align-self: flex-end; }
+        .chat-ai { background: rgba(255,255,255,0.1); color: white; align-self: flex-start; }
+        .progress-bg { background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
+        .progress-fill { background: var(--lime-accent); height: 100%; transition: width 1s ease; }
+        
+        .bento-card { background: #121212; border-radius: 32px; position: relative; overflow: hidden; transition: transform 0.2s; border: 1px solid #1f1f1f; }
         .bento-card:active { transform: scale(0.98); }
         .bento-card.accent { background: var(--lime-accent); color: black; border: none; }
-        
-        .month-selector-btn { position: relative; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 4px 12px; display: flex; align-items: center; gap: 8px; }
-        .month-selector-btn input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; }
-        
-        .checkbox-zen { appearance: none; width: 24px; height: 24px; border: 1px solid #444; border-radius: 6px; position: relative; }
-        .checkbox-zen:checked { background: var(--lime-accent); border-color: var(--lime-accent); }
-        .checkbox-zen:checked::after { content: '✓'; position: absolute; color: black; left: 5px; font-weight: bold; }
-        
-        /* Breath UI */
-        .breath-ring-svg { transform: rotate(-90deg); width: 260px; height: 260px; margin: 0 auto; }
-        .breath-ring-circle { fill: none; stroke: var(--lime-accent); stroke-width: 8; stroke-dasharray: 753; stroke-dashoffset: 753; transition: stroke-dashoffset 0.5s linear; }
-        .breath-state-btn.active { background: var(--lime-accent); color: black; font-weight: bold; }
+
+        @media print { body * { visibility: hidden; } #screen-BUDGET, #screen-BUDGET * { visibility: visible; } #screen-BUDGET { position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; } .no-print { display: none !important; } .glass-card, .glass-panel { border: 1px solid #ccc; box-shadow: none; background: white; color: black; } input { color: black; border-bottom: 1px solid #ddd; } .text-white { color: black !important; } .text-gray-400 { color: #555 !important; } }
     </style>
 </head>
-<body class="min-h-screen relative overflow-x-hidden p-6">
+<body class="min-h-screen relative overflow-x-hidden">
 
-    <!-- Header -->
-    <header class="flex justify-between items-center mb-6">
-        <div class="flex items-center gap-3" onclick="window.showScreen('DASHBOARD')">
-            <div class="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-[#333] flex items-center justify-center p-1">
-                <img src="639d7715983578b450da3fae_mintopng.png.png" class="h-full object-contain">
-            </div>
-            <div>
-                <h1 class="text-sm font-bold">Minto OS</h1>
-                <div class="flex items-center gap-2 text-[10px] text-gray-400">
-                    <span id="status-dot" class="w-2 h-2 bg-red-500 rounded-full"></span>
-                    <span id="status-text">Offline Storage</span>
+    <div style="position: fixed; top: -10%; left: -10%; width: 50vw; height: 50vw; background: radial-gradient(circle, #2f3822, transparent); filter: blur(80px); opacity: 0.4; pointer-events: none;"></div>
+
+    <div class="max-w-md mx-auto min-h-screen relative z-10 flex flex-col p-6">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center py-4 mb-4 no-print">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="window.showScreen('DASHBOARD')">
+                <div class="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center p-1 overflow-hidden">
+                    <img src="639d7715983578b450da3fae_mintopng.png.png" class="h-full object-contain brightness-0 invert" alt="Minto">
                 </div>
-            </div>
-        </div>
-        <button id="auth-btn" onclick="window.handleAuth()" class="text-xs bg-[#1A1A1A] px-4 py-2 rounded-full text-white border border-[#333]">Login</button>
-    </header>
-
-    <!-- Screens Container -->
-    <main class="relative">
-
-        <!-- DASHBOARD -->
-        <div id="screen-DASHBOARD" class="screen-content">
-            <h2 class="text-3xl font-light text-white mb-6">Daily <span class="text-[var(--lime-accent)] font-bold">Protocols</span></h2>
-            
-            <!-- Widget -->
-            <div class="glass-card p-4 mb-6 flex justify-between items-center" onclick="window.showScreen('CALENDAR')">
-                <div><div class="text-[10px] text-gray-400 uppercase tracking-widest">Next Event</div><div id="dash-event" class="text-sm font-medium text-white mt-1">No events</div></div>
-                <i data-lucide="calendar" class="text-gray-500"></i>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="window.showScreen('DEFRAG')" class="bento-card p-4 h-32 flex flex-col justify-between text-left"><i data-lucide="list-checks" class="text-[var(--lime-accent)]"></i><div><span class="text-sm font-bold text-white">Defrag</span><p class="text-[10px] text-gray-400">Priorities</p></div></button>
-                <button onclick="window.showScreen('CALIBRATION')" class="bento-card p-4 h-32 flex flex-col justify-between text-left"><i data-lucide="wind" class="text-blue-400"></i><div><span class="text-sm font-bold text-white">Breathe</span><p class="text-[10px] text-gray-400">Cooling</p></div></button>
-                <button onclick="window.showScreen('NOTEPAD')" class="bento-card p-4 h-32 flex flex-col justify-between text-left"><i data-lucide="sticky-note" class="text-white"></i><div><span class="text-sm font-bold text-white">Notes</span><p class="text-[10px] text-gray-400">Ideas</p></div></button>
-                <button onclick="window.showScreen('CALENDAR')" class="bento-card p-4 h-32 flex flex-col justify-between text-left"><i data-lucide="calendar-days" class="text-white"></i><div><span class="text-sm font-bold text-white">Schedule</span><p class="text-[10px] text-gray-400">G-Cal</p></div></button>
-                <button onclick="window.showScreen('BUDGET')" class="bento-card accent col-span-2 p-4 flex justify-between items-center text-left"><div class="flex gap-3 items-center"><div class="w-10 h-10 bg-black/10 rounded-full flex items-center justify-center"><i data-lucide="pie-chart" class="text-black"></i></div><div><span class="text-sm font-bold">Finance</span><p class="text-[10px] opacity-70">Resource Allocation</p></div></div><i data-lucide="chevron-right" class="text-black"></i></button>
-                <button onclick="window.showScreen('SIMULATOR')" class="bento-card col-span-2 p-4 flex justify-between items-center text-left"><div class="flex gap-3 items-center"><div class="w-10 h-10 bg-[#222] rounded-full flex items-center justify-center"><i data-lucide="message-square" class="text-white"></i></div><div><span class="text-sm font-bold text-white">Simulator</span><p class="text-[10px] text-gray-400">Logic Training</p></div></div><i data-lucide="chevron-right" class="text-white"></i></button>
-                <button onclick="window.showScreen('MORAL')" class="bento-card col-span-2 p-4 flex justify-between items-center text-left"><div class="flex gap-3 items-center"><div class="w-10 h-10 bg-[#222] rounded-full flex items-center justify-center"><i data-lucide="shield" class="text-white"></i></div><div><span class="text-sm font-bold text-white">Directives</span><p class="text-[10px] text-gray-400">Moral Code</p></div></div><i data-lucide="chevron-right" class="text-white"></i></button>
-            </div>
-        </div>
-
-        <!-- BUDGET -->
-        <div id="screen-BUDGET" class="screen-content hidden">
-            <div class="glass-card p-4 mb-4 sticky top-0 z-20 bg-[#050505]">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold text-white">Allocation</h2>
-                    <div class="flex gap-2">
-                        <button onclick="window.toggleBudgetMode()" id="btn-mode" class="text-[10px] px-3 py-1 bg-[#222] rounded-full text-[var(--lime-accent)]">Monthly</button>
-                        <label class="month-selector-btn"><i data-lucide="calendar" class="w-4 h-4 text-[var(--lime-accent)]"></i><input type="month" id="budget-month" onchange="window.changeMonth(this.value)"></label>
+                <div>
+                    <h1 class="text-sm font-semibold tracking-wide text-white">Minto OS</h1>
+                    <div class="flex items-center gap-2 text-[10px] text-gray-400">
+                        <span id="system-status-indicator" class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                        <span id="system-status-text">Offline</span>
                     </div>
                 </div>
-                <div class="grid grid-cols-3 gap-2 text-center text-xs">
-                    <div class="bg-[#1A1A1A] p-2 rounded-lg"><div class="text-gray-500">IN</div><div id="sum-inc" class="text-white">₹0</div></div>
-                    <div class="bg-[#1A1A1A] p-2 rounded-lg"><div class="text-gray-500">OUT</div><div id="sum-exp" class="text-white">₹0</div></div>
-                    <div class="bg-[#1A1A1A] p-2 rounded-lg border border-[var(--lime-accent)]"><div class="text-[var(--lime-accent)]">NET</div><div id="sum-net" class="text-white">₹0</div></div>
+            </div>
+            <button id="auth-btn" onclick="window.handleAuth()" class="text-xs bg-white/10 px-3 py-1.5 rounded-full text-white border border-white/10">Login</button>
+        </header>
+
+        <main class="flex-1 flex flex-col relative">
+
+            <!-- BOOT -->
+            <div id="screen-BOOT" class="screen-content absolute inset-0 flex flex-col justify-center items-center z-50 bg-[#050505]">
+                <div class="mb-8 w-20 h-20 bg-[#111] border border-[var(--lime-accent)] rounded-full flex items-center justify-center animate-pulse p-3">
+                    <img src="639d7715983578b450da3fae_mintopng.png.png" class="w-full h-full object-contain">
                 </div>
-                <div class="flex justify-between mt-4">
-                    <button onclick="window.print()" class="text-xs text-gray-400 flex gap-1"><i data-lucide="printer" class="w-3 h-3"></i> Print</button>
-                    <button onclick="document.getElementById('ai-chat').classList.remove('hidden')" class="text-xs text-[var(--lime-accent)] flex gap-1"><i data-lucide="bot" class="w-3 h-3"></i> AI CFO</button>
+                <h2 class="text-white text-xl font-light">Loading Core...</h2>
+            </div>
+
+            <!-- DASHBOARD -->
+            <div id="screen-DASHBOARD" class="screen-content hidden flex flex-col h-full">
+                <div class="glass-card p-4 mb-6 flex justify-between items-center" onclick="window.showScreen('CALENDAR')">
+                    <div>
+                        <div class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Up Next</div>
+                        <div id="dash-event-title" class="text-sm font-medium text-white truncate max-w-[200px]">No upcoming events</div>
+                        <div id="dash-event-time" class="text-xs text-[var(--lime-accent)]">Check Schedule</div>
+                    </div>
+                    <i data-lucide="calendar" class="w-6 h-6 text-white opacity-50"></i>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Defrag -->
+                    <button onclick="window.showScreen('DEFRAG')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
+                        <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="list-checks" class="w-4 h-4"></i></div>
+                        <div><h3 class="text-sm font-medium text-white">Morning<br>Defrag</h3><p class="text-[10px] text-gray-500">Priorities</p></div>
+                    </button>
+
+                    <!-- System Cooling -->
+                    <button onclick="window.showScreen('CALIBRATION')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
+                        <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="wind" class="w-4 h-4 text-blue-300"></i></div>
+                        <div><h3 class="text-sm font-medium text-white">System<br>Cooling</h3><p class="text-[10px] text-gray-500">Regulate</p></div>
+                    </button>
+
+                    <!-- Notepad -->
+                    <button onclick="window.showScreen('NOTEPAD')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
+                        <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="sticky-note" class="w-4 h-4"></i></div>
+                        <div><h3 class="text-sm font-medium text-white">Quick<br>Notes</h3><p class="text-[10px] text-gray-500">Ideas</p></div>
+                    </button>
+
+                    <!-- Calendar -->
+                    <button onclick="window.showScreen('CALENDAR')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
+                        <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="calendar-days" class="w-4 h-4"></i></div>
+                        <div><h3 class="text-sm font-medium text-white">Schedule<br>& G-Cal</h3><p class="text-[10px] text-gray-500">Events</p></div>
+                    </button>
+
+                    <!-- Budget (Wide) -->
+                    <button onclick="window.showScreen('BUDGET')" class="col-span-2 glass-card p-4 flex justify-between items-center text-left hover:bg-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-[var(--lime-accent)] flex items-center justify-center text-black"><i data-lucide="pie-chart" class="w-5 h-5"></i></div>
+                            <div><h3 class="text-sm font-medium text-white">Resource Allocation</h3><p class="text-[10px] text-gray-400">Financial Core</p></div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
+                    </button>
+
+                    <!-- Simulator (Wide) -->
+                    <button onclick="window.showScreen('SIMULATOR')" class="col-span-2 glass-card p-4 flex justify-between items-center text-left hover:bg-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="message-square" class="w-5 h-5"></i></div>
+                            <div><h3 class="text-sm font-medium text-white">Logic Simulator</h3><p class="text-[10px] text-gray-400">P.R.E.P. Framework</p></div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
+                    </button>
+
+                    <!-- Moral (Wide) -->
+                    <button onclick="window.showScreen('MORAL')" class="col-span-2 glass-card p-4 flex justify-between items-center text-left hover:bg-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white"><i data-lucide="shield" class="w-5 h-5"></i></div>
+                            <div><h3 class="text-sm font-medium text-white">Prime Directives</h3><p class="text-[10px] text-gray-400">Moral Code</p></div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
+                    </button>
                 </div>
             </div>
-            <div id="budget-list" class="pb-20 space-y-2"></div>
-            <div id="ai-chat" class="hidden fixed inset-0 z-50 bg-[#050505] p-4 flex flex-col">
-                <div class="flex justify-between mb-4"><h3 class="text-[var(--lime-accent)] font-bold">CFO AI</h3><button onclick="document.getElementById('ai-chat').classList.add('hidden')" class="text-white">✕</button></div>
-                <div id="chat-history" class="flex-1 overflow-y-auto mb-4"></div>
-                <div class="flex gap-2"><input id="chat-input" class="w-full input-zen p-3" placeholder="Ask..."><button onclick="window.sendChat()" class="btn-primary w-12 flex items-center justify-center"><i data-lucide="send" class="w-4 h-4"></i></button></div>
+            
+            <!-- DEFRAG -->
+            <div id="screen-DEFRAG" class="screen-content hidden flex flex-col h-full">
+                <div class="flex items-center gap-2 mb-6 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
+                <div class="flex justify-between items-end mb-6">
+                    <div><h2 class="text-2xl text-white font-light">Morning Defrag</h2><p id="defrag-date-display" class="text-xs text-[#D4F937] font-mono">Loading Date...</p></div>
+                    <div id="defrag-status" class="text-[10px] text-gray-400">Saved</div>
+                </div>
+                
+                <!-- Fixed: Inputs are rendered once, only values update on typing -->
+                <div id="defrag-list" class="space-y-4 flex-1"></div>
+                
+                <div class="mt-4 p-4 bg-[#111] rounded-2xl border border-[#222]">
+                    <h3 class="text-xs text-gray-500 uppercase mb-2">AI Optimization</h3>
+                    <p id="defrag-ai-suggestion" class="text-sm text-gray-300 italic">"Enter tasks above and click refine..."</p>
+                    <button onclick="window.optimizeDefrag()" class="mt-3 text-[var(--lime-accent)] text-xs flex items-center gap-2 hover:underline"><i data-lucide="sparkles" class="w-3 h-3"></i> Refine Priorities</button>
+                </div>
+                <button onclick="window.resetDefrag()" class="mt-6 text-xs text-red-400 text-center w-full">Clear List</button>
             </div>
-        </div>
 
-        <!-- DEFRAG -->
-        <div id="screen-DEFRAG" class="screen-content hidden">
-            <div class="flex justify-between items-end mb-6"><div><h2 class="text-2xl font-light text-white">Defrag</h2><p id="defrag-date" class="text-xs text-[var(--lime-accent)]">Today</p></div><div id="defrag-status" class="text-[10px] text-gray-500">Saved</div></div>
-            <div id="defrag-list" class="space-y-3"></div>
-            <div class="mt-6"><button onclick="window.resetDefrag()" class="text-xs text-red-400 w-full">Clear</button></div>
-        </div>
-
-        <!-- NOTES -->
-        <div id="screen-NOTEPAD" class="screen-content hidden h-full flex flex-col">
-            <div class="glass-card p-4 flex-1 flex flex-col">
-                <input id="note-title" class="bg-transparent text-xl text-white font-bold mb-4 outline-none" placeholder="Title" oninput="window.saveNotepad()">
-                <textarea id="note-body" class="flex-1 bg-transparent text-sm text-gray-300 resize-none outline-none" placeholder="Type..." oninput="window.saveNotepad()"></textarea>
-                <div id="note-status" class="text-[10px] text-gray-500 text-right">Saved</div>
+            <!-- BUDGET -->
+            <div id="screen-BUDGET" class="screen-content hidden flex flex-col h-full">
+                <div class="flex items-center gap-2 mb-4 cursor-pointer opacity-70 no-print" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
+                <div class="glass-card p-4 mb-4 sticky top-0 z-20 bg-[#050505]/95 backdrop-blur-xl border-b border-white/10 no-print">
+                    <div class="flex flex-col gap-3 mb-4">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-lg font-medium text-white">Allocation</h2>
+                            <button id="budget-view-toggle" onclick="window.toggleBudgetMode()" class="text-[10px] px-2 py-1 rounded bg-white/10 text-[#D4F937] border border-white/20">Monthly</button>
+                        </div>
+                        <label class="month-selector-btn">
+                            <i data-lucide="calendar" class="w-4 h-4 text-[#D4F937]"></i>
+                            <span id="month-display-text" class="text-xs text-white flex-1">Select Month</span>
+                            <input type="month" id="budget-month-selector" onchange="window.changeMonth(this.value)">
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center mb-2">
+                        <div class="glass-panel p-2"><div class="text-[10px] text-gray-400 uppercase">Income</div><div id="summary-income" class="text-xs font-mono text-white">₹0</div></div>
+                        <div class="glass-panel p-2"><div class="text-[10px] text-gray-400 uppercase">Expense</div><div id="summary-expense" class="text-xs font-mono text-white">₹0</div></div>
+                        <div class="glass-panel p-2 border border-[#D4F937]/20"><div class="text-[10px] text-[#D4F937]">NET</div><div id="summary-net" class="text-xs font-mono font-bold text-[#D4F937]">₹0</div></div>
+                    </div>
+                    <div class="flex justify-between">
+                        <button onclick="window.openFinanceChat()" class="text-[#D4F937] text-xs flex items-center gap-1 hover:underline"><i data-lucide="bot" class="w-3 h-3"></i> AI Advisor</button>
+                        <button onclick="window.printBudget()" class="text-gray-400 text-xs flex items-center gap-1 hover:text-white"><i data-lucide="printer" class="w-3 h-3"></i> Print Report</button>
+                    </div>
+                </div>
+                <div id="budget-content-area" class="flex-1 overflow-y-auto pb-20 space-y-2">
+                    <div id="budget-list"></div>
+                    <div id="yearly-dashboard" class="hidden space-y-4"><div class="glass-panel p-4"><h3 class="text-sm font-medium text-white mb-3">Annual Velocity</h3><div id="yearly-stats-container" class="space-y-3"></div></div></div>
+                </div>
+                <div id="finance-chat-modal" class="hidden absolute inset-0 z-50 bg-[#050505] p-4 flex flex-col">
+                    <div class="flex justify-between mb-4 border-b border-white/10 pb-2"><h3 class="text-[#D4F937] font-bold">Minto CFO</h3><button onclick="window.closeFinanceChat()" class="text-white">✕</button></div>
+                    <div id="chat-history" class="flex-1 overflow-y-auto mb-4 space-y-2"></div>
+                    <div class="flex gap-2"><input id="chat-input" class="w-full input-zen p-3 text-sm" placeholder="Ask about finances..."><button onclick="window.sendFinanceMessage()" class="btn-primary w-12 flex items-center justify-center"><i data-lucide="send" class="w-4 h-4"></i></button></div>
+                </div>
             </div>
-        </div>
 
-        <!-- BREATHE -->
-        <div id="screen-CALIBRATION" class="screen-content hidden flex flex-col items-center justify-center h-full">
-            <div class="breath-ring-container mb-10">
-                <svg class="breath-ring-svg" viewBox="0 0 260 260"><circle cx="130" cy="130" r="120" fill="none" stroke="#333" stroke-width="8"></circle><circle id="breath-ring" cx="130" cy="130" r="120" class="breath-ring-circle"></circle></svg>
-                <div class="absolute inset-0 flex items-center justify-center"><div id="breath-core" class="breath-inner-circle"><span id="breath-text" class="text-white text-sm tracking-widest">READY</span></div></div>
+            <!-- SYSTEM COOLING -->
+            <div id="screen-CALIBRATION" class="screen-content hidden flex flex-col h-full items-center">
+                <div class="w-full flex items-center gap-2 mb-8 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
+                <h2 class="text-2xl font-light text-white mb-2">Breathe</h2>
+                <p class="text-xs text-gray-400 mb-8">Reset your nervous system</p>
+                <div class="breath-ring-container mb-12">
+                    <svg class="breath-ring-svg" viewBox="0 0 260 260">
+                        <circle cx="130" cy="130" r="120" class="breath-ring-circle-bg"></circle>
+                        <circle id="breath-progress" cx="130" cy="130" r="120" class="breath-ring-circle"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div id="breath-core" class="breath-inner-circle"><span id="breath-text" class="text-white text-sm font-medium tracking-widest opacity-80">Ready</span></div>
+                    </div>
+                </div>
+                <div class="w-full max-w-xs">
+                    <p class="text-center text-xs text-gray-500 mb-4">Choose your state:</p>
+                    <div class="flex justify-between gap-2">
+                        <button onclick="window.startBreathe('Anxiety')" class="breath-state-btn flex-1" id="btn-anxiety">Anxiety</button>
+                        <button onclick="window.startBreathe('Anger')" class="breath-state-btn flex-1" id="btn-anger">Anger</button>
+                        <button onclick="window.startBreathe('Stress')" class="breath-state-btn flex-1" id="btn-stress">Stress</button>
+                    </div>
+                </div>
+                <button onclick="window.stopBreathe()" class="mt-6 text-xs text-red-400">Stop Session</button>
             </div>
-            <div class="flex gap-2 w-full max-w-xs">
-                <button onclick="window.startBreathe('Anxiety')" class="flex-1 py-2 bg-[#222] rounded-full text-xs text-gray-300 border border-[#333]">Anxiety</button>
-                <button onclick="window.startBreathe('Stress')" class="flex-1 py-2 bg-[#222] rounded-full text-xs text-gray-300 border border-[#333]">Stress</button>
+
+            <!-- SIMULATOR -->
+            <div id="screen-SIMULATOR" class="screen-content hidden flex flex-col h-full">
+                <div class="flex items-center gap-2 mb-6 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
+                <div class="glass-card p-6 mb-4"><span class="text-[10px] bg-[#222] text-gray-400 px-2 py-1 rounded">AI TOPIC</span><h2 id="sim-topic" class="text-xl text-white font-medium mt-3">Loading...</h2></div>
+                <div id="sim-step-0"><button onclick="window.startSim()" class="btn-primary w-full py-3">Start PREP</button></div>
+                <div id="sim-active" class="hidden flex-col gap-4">
+                    <h3 id="sim-stage" class="text-[#D4F937] font-bold">POINT</h3>
+                    <textarea id="sim-input" class="w-full h-32 input-zen p-3 text-sm resize-none"></textarea>
+                    <div id="sim-ai-feedback" class="hidden glass-panel p-3 text-xs text-gray-300 border border-[#D4F937]/30"></div>
+                    <div class="flex gap-2"><button id="btn-sim-ai" onclick="window.runSimDiagnostics()" class="hidden btn-glass flex-1 py-3">AI Grade</button><button onclick="window.nextSim()" class="btn-primary flex-1 py-3">Next</button></div>
+                </div>
             </div>
-            <button onclick="window.stopBreathe()" class="mt-6 text-xs text-red-400">Stop</button>
-        </div>
 
-        <!-- SIMULATOR & MORAL & CALENDAR (Simplified for length, fully functional via JS) -->
-        <div id="screen-SIMULATOR" class="screen-content hidden"><div class="glass-card p-6"><h2 id="sim-topic" class="text-white text-lg mb-4">Loading...</h2><div id="sim-ui"></div></div></div>
-        <div id="screen-MORAL" class="screen-content hidden"><div id="moral-list" class="space-y-2"></div><div class="glass-panel p-2 mt-4 flex gap-2"><input id="moral-input" class="w-full bg-transparent text-white outline-none" placeholder="Add..."><button onclick="window.addMoral()" class="text-[var(--lime-accent)]"><i data-lucide="plus"></i></button></div></div>
-        <div id="screen-CALENDAR" class="screen-content hidden"><div class="glass-card p-4"><input id="cal-title" class="w-full input-zen p-2 mb-2" placeholder="Event"><div class="flex gap-2 mb-2"><input id="cal-date" type="date" class="flex-1 input-zen p-2"><input id="cal-time" type="time" class="flex-1 input-zen p-2"></div><button onclick="window.addEvent()" class="w-full btn-primary py-2">Add</button><div id="event-list" class="mt-4 space-y-2"></div></div></div>
+            <!-- NOTEPAD -->
+            <div id="screen-NOTEPAD" class="screen-content hidden flex flex-col h-full">
+                <div class="flex items-center gap-2 mb-4 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
+                <div class="flex gap-2 mb-4">
+                    <div class="flex-1 bg-[#1A1A1A] rounded-xl flex items-center px-3 py-2 border border-[#222]">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-500 mr-2"></i>
+                        <input id="note-search" placeholder="Search notes..." class="bg-transparent text-white text-sm w-full outline-none" oninput="window.renderNotes()">
+                    </div>
+                    <button onclick="window.openNoteEditor()" class="w-10 h-10 bg-[var(--lime-accent)] rounded-xl flex items-center justify-center text-black"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                </div>
+                <div id="note-folders" class="flex gap-2 overflow-x-auto pb-2 mb-2 no-scrollbar"></div>
+                <div id="notes-grid" class="grid grid-cols-2 gap-3 overflow-y-auto flex-1 pb-4"></div>
+                <div id="note-editor-modal" class="hidden fixed inset-0 z-50 bg-[#080808] flex flex-col p-4">
+                    <div class="flex justify-between items-center mb-6">
+                        <button onclick="window.closeNoteEditor()" class="text-gray-400"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+                        <div class="flex gap-4">
+                            <button onclick="window.togglePinNote()" id="btn-pin" class="text-gray-500"><i data-lucide="pin" class="w-5 h-5"></i></button>
+                            <button onclick="window.deleteNote()" class="text-red-400"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                        </div>
+                    </div>
+                    <input id="editor-title" class="bg-transparent text-2xl text-white font-bold mb-4 outline-none placeholder-[#333]" placeholder="Title">
+                    <textarea id="editor-body" class="flex-1 bg-transparent text-base text-gray-300 resize-none outline-none leading-relaxed placeholder-[#333]" placeholder="Note..."></textarea>
+                    <div class="flex justify-between items-center pt-4 border-t border-[#222]">
+                        <div class="flex gap-2" id="color-picker">
+                            <div onclick="window.setNoteColor('default')" id="color-default" class="color-swatch w-6 h-6 rounded-full border border-gray-600 bg-[#1A1A1A]"></div>
+                            <div onclick="window.setNoteColor('red')" id="color-red" class="color-swatch w-6 h-6 rounded-full bg-red-900/50 border border-red-500/30"></div>
+                            <div onclick="window.setNoteColor('blue')" id="color-blue" class="color-swatch w-6 h-6 rounded-full bg-blue-900/50 border border-blue-500/30"></div>
+                            <div onclick="window.setNoteColor('green')" id="color-green" class="color-swatch w-6 h-6 rounded-full bg-green-900/50 border border-green-500/30"></div>
+                        </div>
+                        <button onclick="window.saveNoteAndClose()" class="px-4 py-2 bg-[var(--lime-accent)] rounded-full text-black text-sm font-bold">Save</button>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Back Button Overlay (Except Dashboard) -->
-        <div id="back-btn" class="fixed top-6 left-6 z-50 hidden" onclick="window.showScreen('DASHBOARD')"><div class="w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 text-white"><i data-lucide="arrow-left" class="w-5 h-5"></i></div></div>
+            <!-- CALENDAR -->
+            <div id="screen-CALENDAR" class="screen-content hidden flex flex-col h-full">
+                <div class="flex items-center gap-2 mb-4 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
+                <div class="glass-card p-4 mb-4">
+                    <h2 class="text-lg text-white mb-4">Schedule</h2>
+                    <div class="space-y-3 mb-6">
+                        <input id="cal-title" class="w-full input-zen p-3 text-sm" placeholder="Meeting Title">
+                        <div class="flex gap-2"><input id="cal-date" type="date" class="flex-1 input-zen p-3 text-sm"><input id="cal-time" type="time" class="flex-1 input-zen p-3 text-sm"></div>
+                        <button onclick="window.addEvent()" class="btn-primary w-full py-2 text-sm">Add Event</button>
+                    </div>
+                    <div id="event-list" class="space-y-2"></div>
+                </div>
+            </div>
 
-    </main>
+            <!-- MORAL -->
+            <div id="screen-MORAL" class="screen-content hidden flex flex-col h-full">
+                <div class="flex items-center gap-2 mb-6 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
+                <div class="glass-card p-6 mb-4"><h2 class="text-xl text-white">Prime Directives</h2></div>
+                <div id="moral-list" class="space-y-2 flex-1"></div>
+                <div class="glass-panel p-3 mt-4 flex gap-2"><input id="moral-input" class="w-full bg-transparent text-white outline-none text-sm" placeholder="Add rule..."><button onclick="window.addMoral()" class="text-[#D4F937]"><i data-lucide="plus" class="w-5 h-5"></i></button></div>
+                <div class="flex justify-end mt-2"><button onclick="window.refineMoralCode()" class="text-xs text-[#D4F937] flex items-center gap-1 hover:underline"><i data-lucide="sparkles" class="w-3 h-3"></i> AI Refine</button></div>
+            </div>
 
+        </main>
+    </div>
+
+    <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, getRedirectResult, signInWithRedirect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- CONFIG ---
-        // PASTE YOUR FIREBASE CONFIG HERE
         const firebaseConfig = {
-             apiKey: "AIzaSyAds-oPZv686w9sqHz3NGfV2mafNCGwR8w",
+            apiKey: "AIzaSyAds-oPZv686w9sqHz3NGfV2mafNCGwR8w",
             authDomain: "minto-os.firebaseapp.com",
             projectId: "minto-os",
             storageBucket: "minto-os.firebasestorage.app",
@@ -172,228 +340,443 @@
             appId: "1:683735878462:web:2a3d7bd761bd9a30c67a6f",
             measurementId: "G-GK3P1STGVC"
         };
-        const apiKey = "AIzaSyDRAqvQVccL8YSKjyNc8N3ih9YYmMtJ3Dc"; // GEMINI API KEY
+        const apiKey = "AIzaSyDRAqvQVccL8YSKjyNc8N3ih9YYmMtJ3Dc"; // Gemini Key
 
-        // --- APP CORE ---
+        // --- TEMPLATE ---
         const budgetTemplate = [
-             { id: 'income', title: 'Income', items: ['Salary', 'Freelance', 'Dividends', 'Other'] },
-             { id: 'living', title: 'Daily Living', items: ['Groceries', 'Dining', 'Personal', 'Clothes'] },
-             { id: 'home', title: 'Home', items: ['Rent', 'Utilities', 'Internet', 'Maintenance'] },
-             { id: 'transpo', title: 'Transport', items: ['Fuel', 'Insurance', 'Repairs', 'Uber'] },
-             { id: 'savings', title: 'Savings', items: ['Emergency', 'Investments', 'Retirement'] }
+            { id: 'income', title: 'Income', items: ['Salary', 'Freelance Income', 'Dividends', 'Gifts Received', 'Refunds/Reimbursements', 'Transfer From Savings', 'Tax', 'Other'] },
+            { id: 'home', title: 'Home Expenses', items: ['Mortgage/Rent', 'Home/Rental Insurance', 'Electricity', 'Gas/Oil', 'Water/Sewer/Trash', 'Phone', 'Cable/Satellite', 'Internet', 'Furnishings/Appliances', 'Lawn/Garden', 'Maintenance/Supplies', 'Improvements', 'Other'] },
+            { id: 'transpo', title: 'Transportation', items: ['Vehicle Payments', 'Auto Insurance', 'Fuel', 'Bus/Taxi/Train Fare', 'Repairs', 'Registration/License', 'Other'] },
+            { id: 'health', title: 'Health', items: ['Health Insurance', 'Doctor/Dentist', 'Medicine/Drugs', 'Health Club Dues', 'Life Insurance', 'Veterinarian/Pet Care', 'Other'] },
+            { id: 'charity', title: 'Charity/Gifts', items: ['Gifts Given', 'Charitable Donations', 'Religious Donations', 'Other'] },
+            { id: 'subs', title: 'Subscriptions', items: ['Google drive', 'Magazines', 'Dues/Memberships', 'Other'] },
+            { id: 'living', title: 'Daily Living', items: ['Groceries', 'Personal Supplies', 'Clothing', 'Cleaning', 'Education/Lessons', 'Dining/Eating Out', 'Salon/Barber', 'Pet Food', 'Other'] },
+            { id: 'ent', title: 'Entertainment', items: ['Videos/DVDs', 'Music', 'Games', 'Rentals', 'Movies/Theater', 'Concerts/Plays', 'Books', 'Hobbies', 'Film/Photos', 'Sports', 'Outdoor Recreation', 'Toys/Gadgets', 'Vacation/Travel', 'Other'] },
+            { id: 'savings', title: 'Savings', items: ['Emergency Fund', 'Transfer to Savings', 'Retirement (401k, IRA)', 'Investments', 'Education', 'Other'] },
+            { id: 'obligations', title: 'Obligations', items: ['Student Loan', 'Other Loan', 'Credit Cards', 'Child Care', 'Federal Taxes', 'State/Local Taxes', 'Other'] },
+            { id: 'misc', title: 'Miscellaneous', items: ['Bank Fees', 'Postage', 'Microgreens', 'Other'] }
         ];
 
-        let state = { 
-            budget: {}, defrag: {}, notepad: {title:'',body:''}, events: [], moral: [], 
-            month: new Date().toISOString().slice(0,7), mode: 'monthly' 
-        };
-        let app, db, auth, userRef, breatheInterval;
+        let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], simData: { P1:'', R:'', E:'', P2:'' } };
+        let app, db, auth, userRef, breatheInterval, currentNoteId = null, defragDebounce;
 
-        // GLOBAL BINDINGS
-        window.showScreen = (id) => {
-            document.querySelectorAll('.screen-content').forEach(e => e.classList.add('hidden'));
-            document.getElementById(`screen-${id}`).classList.remove('hidden');
-            document.getElementById('back-btn').classList.toggle('hidden', id==='DASHBOARD');
-            
-            // Lazy load modules
-            if(id==='BUDGET') renderBudget();
-            if(id==='DEFRAG') renderDefrag();
-            if(id==='CALENDAR') renderEvents();
-            if(id==='MORAL') renderMoral();
-            if(id==='SIMULATOR') initSim();
-            if(id==='NOTEPAD') { document.getElementById('note-title').value=state.notepad.title; document.getElementById('note-body').value=state.notepad.body; }
-            
-            setTimeout(()=>lucide.createIcons(), 50);
-        };
+        // UTILS
+        function safeSetText(id, val) { const el=document.getElementById(id); if(el) el.innerText=val; }
+        function refreshIcons() { setTimeout(() => { if(typeof lucide !== 'undefined') lucide.createIcons(); }, 50); }
 
-        // --- AUTH & SYNC (Hybrid Engine) ---
-        async function init() {
+        Object.assign(window, {
+            showScreen: (id) => {
+                document.querySelectorAll('.screen-content').forEach(e => e.classList.add('hidden'));
+                document.getElementById(`screen-${id}`).classList.remove('hidden');
+                if(id==='BUDGET') renderBudget();
+                if(id==='DEFRAG') renderDefrag();
+                if(id==='CALENDAR') renderEvents();
+                if(id==='MORAL') renderMoral();
+                if(id==='SIMULATOR') initSim();
+                if(id==='NOTEPAD') renderNotepad();
+                if(id!=='CALIBRATION') window.stopBreathe();
+                refreshIcons();
+            },
+            handleAuth: async () => {
+                if(!auth) return alert("Config Missing");
+                if(auth.currentUser) { await signOut(auth); location.reload(); }
+                else { 
+                    // Safari Redirect Fallback
+                    const provider = new GoogleAuthProvider();
+                    try { await signInWithPopup(auth, provider); } 
+                    catch(e) { if (e.code === 'auth/popup-blocked') await signInWithRedirect(auth, provider); else alert(e.message); } 
+                }
+            },
+            // Budget
+            changeMonth: (val) => { if(val) { appState.currentMonth=val; document.getElementById('month-display-text').innerText=val; saveData(); renderBudget(); } },
+            toggleBudgetMode: () => {
+                appState.budgetViewMode = appState.budgetViewMode==='monthly' ? 'yearly' : 'monthly';
+                document.getElementById('budget-view-toggle').innerText = appState.budgetViewMode==='monthly' ? 'Monthly' : 'Yearly';
+                renderBudget();
+            },
+            toggleAccordion: (id) => { const el=document.getElementById(`acc-${id}`); el.classList.toggle('hidden'); refreshIcons(); },
+            updateBudget: (c, i, f, v) => {
+                if(appState.budgetViewMode==='yearly') return;
+                if(!appState.budgetHistory[appState.currentMonth]) initMonth(appState.currentMonth);
+                appState.budgetHistory[appState.currentMonth][c].items[i][f] = parseFloat(v) || 0;
+                saveData(); calculateTotals(); 
+                const sub = appState.budgetHistory[appState.currentMonth][c].items.reduce((s,x)=>s+x.actual,0);
+                safeSetText(`sub-${c}`, `₹${sub.toLocaleString()}`);
+            },
+            printBudget: () => window.print(),
+            openFinanceChat: () => document.getElementById('finance-chat-modal').classList.remove('hidden'),
+            closeFinanceChat: () => document.getElementById('finance-chat-modal').classList.add('hidden'),
+            sendFinanceMessage: async () => {
+                const inp = document.getElementById('chat-input'); const txt = inp.value; if(!txt) return;
+                const hist = document.getElementById('chat-history'); hist.innerHTML += `<div class="chat-bubble chat-user">${txt}</div>`; inp.value = '';
+                const prompt = `Role: CFO. User: ${txt}`;
+                const res = await callGemini(prompt);
+                hist.innerHTML += `<div class="chat-bubble chat-ai">${res}</div>`;
+            },
+            // Notepad - FIXED
+            renderNotes: () => {
+                const grid = document.getElementById('notes-grid'); grid.innerHTML = '';
+                const query = document.getElementById('note-search').value.toLowerCase();
+                const folder = appState.notepad.activeFolder;
+                if(!Array.isArray(appState.notepad.notes)) appState.notepad.notes = [];
+                
+                const notes = appState.notepad.notes.filter(n => (n.title.toLowerCase().includes(query) || n.body.toLowerCase().includes(query)) && (folder === 'All' || n.folder === folder)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+                
+                notes.forEach(n => {
+                    const colorClass = `note-color-${n.color||'default'}`;
+                    const el = document.createElement('div');
+                    el.className = `p-4 rounded-2xl border flex flex-col justify-between h-32 cursor-pointer relative overflow-hidden ${colorClass}`;
+                    el.onclick = () => window.openNoteEditor(n.id);
+                    el.innerHTML = `<div><h3 class="text-white font-bold text-sm truncate pr-4">${n.title||'Untitled'}</h3><p class="text-xs text-gray-400 line-clamp-3 mt-1">${n.body||''}</p></div><div class="flex justify-between items-end mt-2"><span class="text-[10px] text-gray-500">${n.folder||'General'}</span>${n.pinned?'<i data-lucide="pin" class="w-3 h-3 text-[var(--lime-accent)]"></i>':''}</div>`;
+                    grid.appendChild(el);
+                });
+                refreshIcons();
+            },
+            openNoteEditor: (id=null) => {
+                currentNoteId = id;
+                document.getElementById('note-editor-modal').classList.remove('hidden');
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                
+                if(id) {
+                    const note = appState.notepad.notes.find(n=>n.id===id);
+                    document.getElementById('editor-title').value=note.title; document.getElementById('editor-body').value=note.body;
+                    document.getElementById('btn-pin').classList.toggle('text-[var(--lime-accent)]', note.pinned);
+                    const colorId = `color-${note.color || 'default'}`;
+                    const colorEl = document.getElementById(colorId);
+                    if(colorEl) colorEl.classList.add('selected');
+                } else {
+                    document.getElementById('editor-title').value=''; document.getElementById('editor-body').value='';
+                    document.getElementById('btn-pin').classList.remove('text-[var(--lime-accent)]');
+                    document.getElementById('color-default').classList.add('selected');
+                }
+                refreshIcons();
+            },
+            closeNoteEditor: () => document.getElementById('note-editor-modal').classList.add('hidden'),
+            saveNoteAndClose: () => {
+                const title = document.getElementById('editor-title').value;
+                const body = document.getElementById('editor-body').value;
+                let activeColor = 'default';
+                document.querySelectorAll('.color-swatch').forEach(s => { if(s.classList.contains('selected')) activeColor = s.id.replace('color-', ''); });
+
+                if(!title && !body) return window.closeNoteEditor();
+                
+                if(currentNoteId) {
+                    const note = appState.notepad.notes.find(n=>n.id===currentNoteId);
+                    note.title=title; note.body=body; note.updated=Date.now(); note.color = activeColor;
+                } else {
+                    appState.notepad.notes.push({
+                        id: Date.now().toString(), title, body, 
+                        color:activeColor, 
+                        folder:appState.notepad.activeFolder==='All'?'Personal':appState.notepad.activeFolder, 
+                        pinned:false, updated:Date.now()
+                    });
+                }
+                saveData(); 
+                window.renderNotes(); 
+                window.closeNoteEditor();
+            },
+            deleteNote: () => { if(currentNoteId) { appState.notepad.notes=appState.notepad.notes.filter(n=>n.id!==currentNoteId); saveData(); window.renderNotes(); } window.closeNoteEditor(); },
+            togglePinNote: () => { 
+                if(currentNoteId) { 
+                    const n=appState.notepad.notes.find(x=>x.id===currentNoteId); 
+                    n.pinned=!n.pinned; 
+                    document.getElementById('btn-pin').classList.toggle('text-[var(--lime-accent)]', n.pinned); 
+                    saveData(); 
+                } 
+            },
+            setNoteColor: (c) => { 
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                document.getElementById(`color-${c}`).classList.add('selected');
+                if(currentNoteId) { const note = appState.notepad.notes.find(x=>x.id===currentNoteId); if(note) { note.color=c; saveData(); } } 
+            },
+            changeFolder: (f) => {
+                appState.notepad.activeFolder = f;
+                document.querySelectorAll('.folder-tab').forEach(t => {
+                    t.classList.toggle('bg-[var(--lime-accent)]', t.innerText===f); t.classList.toggle('text-black', t.innerText===f);
+                    t.classList.toggle('bg-[#222]', t.innerText!==f); t.classList.toggle('text-gray-400', t.innerText!==f);
+                });
+                window.renderNotes();
+            },
+            // Defrag
+            toggleDefrag: (i) => {
+                const d = new Date().toISOString().split('T')[0]; ensureDefrag(d);
+                appState.defragHistory[d][i].done = !appState.defragHistory[d][i].done; saveData(); renderDefrag();
+            },
+            updateDefrag: (i, v) => {
+                // Debounce to prevent lag
+                const d = new Date().toISOString().split('T')[0]; ensureDefrag(d);
+                appState.defragHistory[d][i].text = v;
+                
+                safeSetText('defrag-status', 'Saving...');
+                clearTimeout(defragDebounce);
+                defragDebounce = setTimeout(() => { saveData(); safeSetText('defrag-status', 'Saved'); }, 1000);
+            },
+            resetDefrag: () => {
+                const d = new Date().toISOString().split('T')[0];
+                appState.defragHistory[d] = [{text:'',done:false},{text:'',done:false},{text:'',done:false}]; saveData(); renderDefrag();
+            },
+            optimizeDefrag: async () => {
+                const d = new Date().toISOString().split('T')[0]; ensureDefrag(d);
+                const tasks = appState.defragHistory[d].map(x=>x.text).join(', ');
+                if(!tasks) return alert("Enter tasks first");
+                const res = await callGemini(`Rewrite these tasks as executive commands: ${tasks}`);
+                document.getElementById('defrag-ai-suggestion').innerText = res;
+            },
+            // Sim
+            startSim: () => { document.getElementById('sim-step-0').classList.add('hidden'); document.getElementById('sim-active').classList.remove('hidden'); renderSimStep(); },
+            nextSim: () => {
+                const keys = ["P1", "R", "E", "P2"];
+                appState.simData[keys[window.simIdx]] = document.getElementById('sim-input').value;
+                window.simIdx++;
+                if(window.simIdx>=4) { document.getElementById('btn-sim-ai').classList.remove('hidden'); return; }
+                renderSimStep();
+            },
+            runSimDiagnostics: async () => {
+                const fb=document.getElementById('sim-ai-feedback'); fb.classList.remove('hidden'); fb.innerText="Analyzing...";
+                const res = await callGemini(`Grade logic: Point ${appState.simData.P1}, Reason ${appState.simData.R}`);
+                fb.innerText=res;
+            },
+            // Breathe
+            startBreathe: (st) => {
+                if(breatheInterval) window.stopBreathe();
+                const txt=document.getElementById('breath-text'), ring=document.getElementById('breath-progress'), core=document.getElementById('breath-core');
+                document.querySelectorAll('#screen-CALIBRATION button').forEach(b=>b.classList.remove('bg-white','text-black'));
+                document.getElementById(`btn-${st.toLowerCase()}`).classList.add('bg-white','text-black');
+                let phases = st==='Anxiety' ? [{t:'In',d:4000,o:0},{t:'Hold',d:7000,o:0},{t:'Out',d:8000,o:753}] : [{t:'In',d:4000,o:0},{t:'Hold',d:4000,o:0},{t:'Out',d:4000,o:753},{t:'Hold',d:4000,o:753}];
+                let pIdx=0;
+                const run = () => {
+                    const p = phases[pIdx];
+                    txt.innerText=p.t; ring.style.transitionDuration = `${p.d}ms`; core.style.transitionDuration = `${p.d}ms`;
+                    ring.style.strokeDashoffset = p.o; core.style.transform = p.t==='In' ? 'scale(1.3)' : 'scale(1)';
+                    breatheInterval = setTimeout(()=>{ pIdx=(pIdx+1)%phases.length; run(); }, p.d);
+                };
+                run();
+            },
+            stopBreathe: () => {
+                if(breatheInterval) clearTimeout(breatheInterval);
+                safeSetText('breath-text', "READY");
+                const ring=document.getElementById('breath-progress'); if(ring) ring.style.strokeDashoffset=753;
+                const core=document.getElementById('breath-core'); if(core) core.style.transform='scale(1)';
+                document.querySelectorAll('.breath-state-btn').forEach(b=>b.classList.remove('active'));
+            },
+            addEvent: () => {
+                const t=document.getElementById('cal-title').value, d=document.getElementById('cal-date').value, tm=document.getElementById('cal-time').value;
+                if(!t||!d) return;
+                appState.events.push({title:t, date:d, time:tm});
+                appState.events.sort((a,b)=>new Date(a.date)-new Date(b.date));
+                saveData(); renderEvents(); document.getElementById('cal-title').value='';
+                const s=d.replace(/-/g,'')+(tm?`T${tm.replace(':','')}00`:'');
+                window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(t)}&dates=${s}/${s}`, '_blank');
+            },
+            deleteEvent: (i) => { appState.events.splice(i,1); saveData(); renderEvents(); },
+            addMoral: () => { const v=document.getElementById('moral-input').value; if(v){ appState.moralCodes.push({text:v,checked:false}); saveData(); renderMoral(); document.getElementById('moral-input').value=''; } },
+            delMoral: (i) => { appState.moralCodes.splice(i,1); saveData(); renderMoral(); },
+            toggleMoral: (i) => { appState.moralCodes[i].checked=!appState.moralCodes[i].checked; saveData(); renderMoral(); },
+            refineMoralCode: async () => {
+                const v=document.getElementById('moral-input').value;
+                if(!v) return alert("Type draft first");
+                const res=await callGemini(`Refine into stoic maxim: ${v}`);
+                document.getElementById('moral-input').value=res;
+            }
+        });
+
+        // --- HELPERS ---
+        function ensureDefrag(d) { if(!appState.defragHistory[d]) appState.defragHistory[d]=[{text:'',done:false},{text:'',done:false},{text:'',done:false}]; }
+        function initMonth(m) { appState.budgetHistory[m] = budgetTemplate.map(c=>({ title:c.title, id:c.id, items:c.items.map(n=>({name:n,projected:0,actual:0})) })); }
+        
+        function renderNotepad() {
+            const tabs = document.getElementById('note-folders');
+            tabs.innerHTML = appState.notepad.folders.map(f => 
+                `<button onclick="window.changeFolder('${f}')" class="folder-tab whitespace-nowrap px-4 py-2 rounded-full text-xs font-medium border border-[#333] ${appState.notepad.activeFolder === f ? 'bg-[var(--lime-accent)] text-black' : 'bg-[#222] text-gray-400'}">${f}</button>`
+            ).join('');
+            window.renderNotes();
+        }
+
+        function renderBudget() {
+            const list = document.getElementById('budget-list');
+            const dash = document.getElementById('yearly-dashboard');
+            const picker = document.getElementById('budget-month-selector');
+            
+            if(appState.budgetViewMode === 'yearly') {
+                list.classList.add('hidden'); dash.classList.remove('hidden'); picker.disabled=true;
+                renderYearly();
+                return;
+            }
+            
+            list.classList.remove('hidden'); dash.classList.add('hidden'); picker.disabled=false;
+            list.innerHTML = '';
+            
+            const m = appState.currentMonth;
+            safeSetText('month-display-text', m);
+            const pEl = document.getElementById('budget-month-selector'); if(pEl) pEl.value = m;
+            if(!appState.budgetHistory[m]) initMonth(m);
+            
+            appState.budgetHistory[m].forEach((cat, idx) => {
+                const sub = cat.items.reduce((s,i)=>s+i.actual,0);
+                const el = document.createElement('div');
+                el.className = "bg-[#1A1A1A] rounded-2xl overflow-hidden mb-2 border border-[#222]";
+                el.innerHTML = `
+                    <div class="p-4 flex justify-between items-center cursor-pointer" onclick="window.toggleAccordion(${idx})">
+                        <div><span class="text-white font-medium text-sm">${cat.title}</span><span id="sub-${idx}" class="text-xs text-[var(--lime-accent)]">₹${sub.toLocaleString()}</span></div>
+                        <i id="icon-${idx}" data-lucide="chevron-down" class="w-4 h-4 text-gray-500"></i>
+                    </div>
+                    <div id="acc-${idx}" class="hidden bg-[#111] p-3 space-y-3 border-t border-[#222]">
+                        <div class="grid grid-cols-12 gap-2 text-[9px] text-gray-500 uppercase"><div class="col-span-4">Item</div><div class="col-span-3 text-center">Proj</div><div class="col-span-3 text-center">Act</div><div class="col-span-2 text-right">Diff</div></div>
+                        ${cat.items.map((it, i) => {
+                            const diff = it.projected - it.actual;
+                            const col = diff >= 0 ? 'text-green-500' : 'text-red-500';
+                            return `<div class="grid grid-cols-12 gap-2 items-center">
+                                <div class="col-span-4 text-xs text-gray-300 truncate">${it.name}</div>
+                                <input type="number" class="col-span-3 bg-[#222] rounded p-1 text-center text-white text-xs" value="${it.projected||''}" onchange="window.updateBudget(${idx},${i},'projected',this.value)">
+                                <input type="number" class="col-span-3 bg-[#222] rounded p-1 text-center text-white text-xs" value="${it.actual||''}" onchange="window.updateBudget(${idx},${i},'actual',this.value)">
+                                <div class="col-span-2 text-[10px] text-right ${col}">₹${diff}</div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                `;
+                list.appendChild(el);
+            });
+            calculateTotals();
+            lucide.createIcons();
+        }
+
+        function calculateTotals() {
+            let inc=0, exp=0;
+            const m = appState.currentMonth;
+            if(appState.budgetViewMode==='yearly') { /* Aggregation */ } 
+            else if(appState.budgetHistory[m]) {
+                appState.budgetHistory[m].forEach(c => c.items.forEach(i => { if(c.id==='income') inc+=i.actual; else exp+=i.actual; }));
+            }
+            safeSetText('summary-income', `₹${inc.toLocaleString()}`);
+            safeSetText('summary-expense', `₹${exp.toLocaleString()}`);
+            safeSetText('summary-net', `₹${(inc-exp).toLocaleString()}`);
+            safeSetText('dash-net-worth', `₹${(inc-exp).toLocaleString()}`);
+        }
+
+        function renderYearly() {
+            const c = document.getElementById('yearly-stats-container'); c.innerHTML = '';
+            Object.keys(appState.budgetHistory).sort().forEach(m => {
+                let i=0, e=0;
+                appState.budgetHistory[m].forEach(c => c.items.forEach(x => { if(c.id==='income') i+=x.actual; else e+=x.actual; }));
+                c.innerHTML += `<div class="bg-[#222] p-3 rounded-xl flex justify-between mb-2"><span class="text-white text-sm">${m}</span><span class="text-[var(--lime-accent)] text-sm">Net: ₹${i-e}</span></div>`;
+            });
+        }
+
+        function renderDefrag() {
+            const d = new Date().toISOString().split('T')[0];
+            ensureDefrag(d);
+            safeSetText('defrag-date-display', d);
+            const l = document.getElementById('defrag-list'); l.innerHTML = '';
+            appState.defragHistory[d].forEach((it, i) => {
+                l.innerHTML += `<div class="bg-[#1A1A1A] p-3 rounded-xl flex gap-3 border border-[#333]"><input type="checkbox" class="checkbox-zen" ${it.done?'checked':''} onchange="window.toggleDefrag(${i})"><input class="bg-transparent w-full text-white outline-none ${it.done?'line-through opacity-50':''}" value="${it.text}" oninput="window.updateDefrag(${i},this.value)"></div>`;
+            });
+        }
+
+        function renderMoral() {
+            const l = document.getElementById('moral-list'); l.innerHTML = '';
+            appState.moralCodes.forEach((c, i) => {
+                l.innerHTML += `<div class="bg-[#1A1A1A] p-3 rounded-xl flex gap-3 border border-[#333] mb-2"><input type="checkbox" class="checkbox-zen" ${c.checked?'checked':''} onchange="window.toggleMoral(${i})"><span class="flex-1 text-white text-sm ${c.checked?'line-through opacity-50':''}">${c.text}</span><button onclick="window.delMoral(${i})" class="text-red-400">x</button></div>`;
+            });
+        }
+
+        function renderEvents() {
+            const l = document.getElementById('event-list'); l.innerHTML = '';
+            appState.events.forEach((e, i) => {
+                l.innerHTML += `<div class="bg-[#1A1A1A] p-3 rounded-xl flex justify-between border border-[#333]"><div><div class="text-white text-sm">${e.title}</div><div class="text-gray-500 text-xs">${e.date} ${e.time}</div></div><div class="flex gap-2"><button onclick="window.addToGCal(${i})" class="text-[var(--lime-accent)]"><i data-lucide="calendar-plus" class="w-4 h-4"></i></button><button onclick="window.deleteEvent(${i})" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`;
+            });
+            refreshIcons();
+            const next = appState.events.find(e => new Date(e.date) >= new Date());
+            if(next) safeSetText('dash-next-event', `${next.title} @ ${next.time}`);
+        }
+
+        async function initSim() {
+            const res = await callGemini("Topic for short debate:");
+            safeSetText('sim-topic', res || "Remote Work");
+            document.getElementById('sim-step-0').classList.remove('hidden');
+            document.getElementById('sim-active').classList.add('hidden');
+            window.simIdx=0;
+        }
+        function renderSimStep() {
+            safeSetText('sim-stage', ["POINT","REASON","EXAMPLE","POINT"][window.simIdx]);
+            document.getElementById('sim-input').value='';
+        }
+
+        // --- CORE ---
+        async function callGemini(p) {
+            if(!apiKey) return "No API Key";
+            try {
+                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({contents: [{parts: [{text: p}]}]})});
+                const d = await r.json();
+                return d.candidates[0].content.parts[0].text;
+            } catch(e) { return "Error"; }
+        }
+
+        function saveData() {
+            localStorage.setItem('minto_ult_v3', JSON.stringify(appState));
+            if(auth && auth.currentUser && userRef) setDoc(userRef, appState, {merge:true});
+        }
+        function loadLocal() {
+            const s = localStorage.getItem('minto_ult_v3');
+            if(s) appState = JSON.parse(s);
+            
+            // Structure Integrity Check
+            if(!appState.defragHistory) appState.defragHistory = {};
+            if(!appState.moralCodes) appState.moralCodes = [];
+            if(!appState.notepad) appState.notepad = { notes: [], folders: ['All', 'Personal', 'Work', 'Ideas'], activeFolder: 'All' };
+            if(!Array.isArray(appState.notepad.notes)) appState.notepad.notes = [];
+            
+            refreshUI();
+        }
+        function wipeDataView() {
+             appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], simData: { P1:'', R:'', E:'', P2:'' } };
+             refreshUI();
+        }
+        function refreshUI() {
+            if(!document.getElementById('screen-BUDGET').classList.contains('hidden')) { renderBudget(); }
+            if(!document.getElementById('screen-DEFRAG').classList.contains('hidden')) renderDefrag();
+            if(!document.getElementById('screen-NOTEPAD').classList.contains('hidden')) renderNotepad();
+            if(!document.getElementById('screen-MORAL').classList.contains('hidden')) renderMoral();
+            if(!document.getElementById('screen-CALENDAR').classList.contains('hidden')) renderEvents();
+            calculateTotals();
+            refreshIcons();
+        }
+
+        window.onload = function() {
             try {
                 if(firebaseConfig.apiKey !== "YOUR_API_KEY") {
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
                     
-                    // ENABLE OFFLINE STORAGE (The "Widget" Magic)
-                    enableIndexedDbPersistence(db).catch(e => console.log("Offline persistence error", e));
+                    enableIndexedDbPersistence(db).catch((err) => {
+                         if (err.code == 'failed-precondition') { console.log('Tabs open'); } 
+                         else if (err.code == 'unimplemented') { console.log('No browser support'); }
+                    });
 
                     onAuthStateChanged(auth, (u) => {
                         if(u) {
-                            document.getElementById('status-text').innerText = "Cloud Sync";
-                            document.getElementById('status-dot').className = "w-2 h-2 bg-[var(--lime-accent)] rounded-full";
-                            document.getElementById('auth-btn').innerText = "Logout";
+                            safeSetText('system-status-text', "Online");
+                            const ind = document.getElementById('system-status-indicator'); if(ind) ind.className = "w-2 h-2 bg-[var(--lime-accent)] rounded-full";
+                            document.getElementById('auth-btn').innerHTML = '<i data-lucide="log-out" class="w-5 h-5"></i>';
                             userRef = doc(db, "users", u.uid);
                             onSnapshot(userRef, (s) => {
-                                if(s.exists()) { state = {...state, ...s.data()}; refreshUI(); }
+                                if(s.exists()) { 
+                                    const cloudData = s.data();
+                                    // Smart Merge Logic to prevent overwrite of local if cloud is empty (Optional)
+                                    // Here we assume Cloud is truth if exists
+                                    appState = { ...appState, ...cloudData };
+                                    // Re-verify structure after merge
+                                    if(!Array.isArray(appState.notepad.notes)) appState.notepad.notes = [];
+                                    refreshUI(); 
+                                }
                             });
-                        } else loadLocal();
+                        } else { wipeDataView(); }
                     });
                 } else loadLocal();
             } catch(e) { loadLocal(); }
             
-            // Force Icons
-            lucide.createIcons();
-        }
-
-        function loadLocal() {
-            const s = localStorage.getItem('minto_v5');
-            if(s) state = JSON.parse(s);
-            refreshUI();
-        }
-
-        function saveData() {
-            localStorage.setItem('minto_v5', JSON.stringify(state)); // Phone Storage
-            if(auth && auth.currentUser && userRef) setDoc(userRef, state, {merge:true}); // Cloud Storage
-        }
-
-        window.handleAuth = async () => {
-            if(!auth) return alert("Config Missing");
-            if(auth.currentUser) { await signOut(auth); location.reload(); }
-            else { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e) { alert(e.message); } }
-        }
-
-        // --- BUDGET ---
-        function renderBudget() {
-            const list = document.getElementById('budget-list');
-            list.innerHTML = '';
-            const m = state.month;
-            document.getElementById('budget-month').value = m;
-            
-            // Yearly View
-            if(state.mode === 'yearly') {
-                const y = m.split('-')[0];
-                const months = Object.keys(state.budget).filter(k=>k.startsWith(y)).sort();
-                months.forEach(mo => {
-                    let inc=0, exp=0;
-                    state.budget[mo].forEach(c => c.items.forEach(i => { if(c.id==='income') inc+=i.a; else exp+=i.a; }));
-                    list.innerHTML += `<div class="glass-panel p-3 mb-2 flex justify-between"><span class="text-white">${mo}</span><span class="text-[var(--lime-accent)]">Net: ₹${inc-exp}</span></div>`;
-                });
-                return;
-            }
-
-            // Init Month
-            if(!state.budget[m]) state.budget[m] = budgetTemplate.map(c=>({ id:c.id, title:c.title, items:c.items.map(n=>({n, p:0, a:0})) }));
-            
-            let tInc=0, tExp=0;
-            state.budget[m].forEach((cat, idx) => {
-                const sub = cat.items.reduce((s,i)=>s+i.a,0);
-                if(cat.id==='income') tInc+=sub; else tExp+=sub;
-                
-                const div = document.createElement('div');
-                div.className = "glass-card mb-2 overflow-hidden";
-                div.innerHTML = `
-                    <div class="p-4 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                        <div><span class="text-white font-medium text-sm">${cat.title}</span><span class="text-xs text-[var(--lime-accent)] ml-2">₹${sub}</span></div>
-                        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-500"></i>
-                    </div>
-                    <div class="hidden bg-[#111] p-3 space-y-2">
-                        ${cat.items.map((it, i) => `
-                            <div class="grid grid-cols-12 gap-2 items-center">
-                                <div class="col-span-4 text-xs text-gray-300 truncate">${it.n}</div>
-                                <input type="number" class="col-span-4 input-zen p-1 text-center text-xs" value="${it.p||''}" onchange="window.updBud(${idx},${i},'p',this.value)">
-                                <input type="number" class="col-span-4 input-zen p-1 text-center text-xs" value="${it.a||''}" onchange="window.updBud(${idx},${i},'a',this.value)">
-                            </div>
-                        `).join('')}
-                    </div>`;
-                list.appendChild(div);
-            });
-            
-            document.getElementById('sum-inc').innerText = `₹${tInc}`;
-            document.getElementById('sum-exp').innerText = `₹${tExp}`;
-            document.getElementById('sum-net').innerText = `₹${tInc-tExp}`;
-            lucide.createIcons();
-        }
-
-        window.updBud = (c, i, f, v) => { state.budget[state.month][c].items[i][f] = parseFloat(v)||0; saveData(); renderBudget(); };
-        window.changeMonth = (v) => { if(v) { state.month = v; renderBudget(); } };
-        window.toggleBudgetMode = () => { state.mode = state.mode==='monthly'?'yearly':'monthly'; document.getElementById('budget-view-toggle').innerText = state.mode; renderBudget(); };
-        window.sendChat = async () => {
-            const txt = document.getElementById('chat-input').value;
-            const res = await callGemini(`Act as CFO. User: ${txt}. Data: ${JSON.stringify(state.budget[state.month])}`);
-            document.getElementById('chat-history').innerHTML += `<div class="chat-bubble chat-ai">${res}</div>`;
-        }
-
-        // --- DEFRAG ---
-        function renderDefrag() {
-            const d = new Date().toISOString().split('T')[0];
-            document.getElementById('defrag-date-display').innerText = d;
-            if(!state.defrag[d]) state.defrag[d] = [{t:'',d:false},{t:'',d:false},{t:'',d:false}];
-            
-            const list = document.getElementById('defrag-list'); list.innerHTML = '';
-            state.defrag[d].forEach((it, i) => {
-                list.innerHTML += `<div class="glass-panel p-3 flex gap-3 items-center"><input type="checkbox" class="checkbox-zen" ${it.d?'checked':''} onchange="window.togDef(${i})"><input class="bg-transparent w-full text-white outline-none ${it.d?'opacity-50 line-through':''}" value="${it.t}" oninput="window.updDef(${i},this.value)"></div>`;
-            });
-        }
-        window.togDef = (i) => { const d=new Date().toISOString().split('T')[0]; state.defrag[d][i].d=!state.defrag[d][i].d; saveData(); renderDefrag(); };
-        window.updDef = (i,v) => { const d=new Date().toISOString().split('T')[0]; state.defrag[d][i].t=v; saveData(); };
-        window.optimizeDefrag = async () => { 
-            const d=new Date().toISOString().split('T')[0]; 
-            const txt=state.defrag[d].map(x=>x.t).join(', '); 
-            const res=await callGemini(`Rewrite as executive commands: ${txt}`);
-            document.getElementById('defrag-ai-suggestion').innerText=res; 
+            setTimeout(() => { document.getElementById('screen-BOOT').classList.add('hidden'); window.showScreen('DASHBOARD'); }, 2000);
         };
-
-        // --- UTILS ---
-        window.saveNotepad = () => { state.notepad.title = document.getElementById('note-title').value; state.notepad.body = document.getElementById('note-body').value; saveData(); };
-        window.addEvent = () => {
-            const t=document.getElementById('cal-title').value, d=document.getElementById('cal-date').value;
-            if(t&&d) { state.events.push({t,d}); state.events.sort((a,b)=>new Date(a.d)-new Date(b.d)); saveData(); renderEvents(); }
-        };
-        function renderEvents() {
-            const l = document.getElementById('event-list'); l.innerHTML = '';
-            const now = new Date();
-            let next = null;
-            state.events.forEach(e => {
-                l.innerHTML += `<div class="glass-panel p-3 flex justify-between"><span class="text-white text-sm">${e.t}</span><span class="text-gray-500 text-xs">${e.d}</span></div>`;
-                if(!next && new Date(e.d) >= now) next = e;
-            });
-            if(next) document.getElementById('dash-event').innerText = `${next.t} (${next.d})`;
-        }
-        
-        window.addMoral = () => { const v=document.getElementById('moral-input').value; if(v){ state.moral.push({t:v,c:false}); saveData(); renderMoral(); } };
-        function renderMoral() {
-            const l=document.getElementById('moral-list'); l.innerHTML='';
-            state.moral.forEach(m => l.innerHTML+=`<div class="glass-panel p-3 mb-2 text-white text-sm">${m.t}</div>`);
-        }
-        
-        async function initSim() {
-            const t = await callGemini("One short debate topic:");
-            document.getElementById('sim-ui').innerHTML = `<h3 class="text-white text-lg font-bold">${t}</h3><textarea class="w-full h-32 input-zen mt-4 p-3"></textarea><button class="btn-primary w-full mt-4 py-2" onclick="alert('Saved to Training Data')">Complete</button>`;
-        }
-
-        // Breathing
-        window.startBreathe = (st) => {
-            if(breatheInterval) clearInterval(breatheInterval);
-            const ring=document.getElementById('breath-ring'), txt=document.getElementById('breath-text'), core=document.getElementById('breath-core');
-            let phases = st==='Anxiety' ? [{t:'In',d:4000},{t:'Hold',d:7000},{t:'Out',d:8000}] : [{t:'In',d:4000},{t:'Out',d:4000}];
-            let idx=0;
-            const run = () => {
-                const p = phases[idx];
-                txt.innerText = p.t;
-                ring.style.transitionDuration = `${p.d}ms`; core.style.transitionDuration = `${p.d}ms`;
-                ring.style.strokeDashoffset = p.t==='In' ? 0 : 753;
-                core.style.transform = p.t==='In' ? 'scale(1.3)' : 'scale(1)';
-                breatheInterval = setTimeout(() => { idx=(idx+1)%phases.length; run(); }, p.d);
-            };
-            run();
-        };
-        window.stopBreathe = () => { clearInterval(breatheInterval); window.showScreen('DASHBOARD'); };
-
-        async function callGemini(p) {
-            try {
-                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({contents: [{parts: [{text: p}]}]})});
-                const d = await r.json();
-                return d.candidates[0].content.parts[0].text;
-            } catch(e) { return "AI Error"; }
-        }
-
-        function refreshUI() {
-            if(!document.getElementById('screen-BUDGET').classList.contains('hidden')) renderBudget();
-            if(!document.getElementById('screen-CALENDAR').classList.contains('hidden')) renderEvents();
-            renderEvents(); // Update dash widget
-        }
-
-        window.onload = init;
     </script>
 </body>
 </html>
