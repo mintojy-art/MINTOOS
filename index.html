@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Minto OS - Ultimate Stable</title>
+    <title>Minto OS - Ultimate Fixed</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <link rel="apple-touch-icon" href="639d7715983578b450da3fae_mintopng.png.png">
@@ -48,17 +48,27 @@
         .progress-bg { background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; overflow: hidden; }
         .progress-fill { background: var(--lime-accent); height: 100%; transition: width 1s ease; }
         
-        /* Bento Cards - Uniform Style */
+        /* Note Colors */
+        .note-color-default { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+        .note-color-red { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); }
+        .note-color-blue { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.3); }
+        .note-color-green { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); }
+        .note-color-yellow { background: rgba(234,179,8,0.15); border-color: rgba(234,179,8,0.3); }
+        .note-color-purple { background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.3); }
+        .color-swatch { cursor: pointer; transition: transform 0.2s; }
+        .color-swatch.selected { border: 2px solid white; box-shadow: 0 0 10px rgba(255,255,255,0.2); }
+
+        /* Bento Cards */
         .bento-card { background: #121212; border-radius: 32px; position: relative; overflow: hidden; transition: transform 0.2s; border: 1px solid #1f1f1f; }
         .bento-card:active { transform: scale(0.98); }
         .bento-card.accent { background: var(--lime-accent); color: black; border: none; }
         
         /* Charts */
-        .chart-pie { width: 150px; height: 150px; border-radius: 50%; margin: 0 auto; position: relative; }
-        .chart-pie-center { position: absolute; inset: 40px; background: #1A1A1A; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; }
-        .chart-bar-container { height: 100px; display: flex; align-items: flex-end; justify-content: space-around; gap: 8px; }
-        .chart-bar { width: 30px; border-radius: 4px 4px 0 0; position: relative; }
-        .chart-bar-label { position: absolute; bottom: -20px; left: 0; right: 0; text-align: center; font-size: 10px; color: #888; }
+        .chart-pie { width: 180px; height: 180px; border-radius: 50%; margin: 0 auto; position: relative; }
+        .chart-pie-center { position: absolute; inset: 50px; background: #1A1A1A; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .chart-bar-container { height: 120px; display: flex; align-items: flex-end; justify-content: space-around; gap: 12px; }
+        .chart-bar { width: 40px; border-radius: 6px 6px 0 0; position: relative; transition: height 0.5s ease-out; }
+        .chart-bar-label { position: absolute; bottom: -24px; left: 0; right: 0; text-align: center; font-size: 10px; color: #888; }
 
         @media print { body * { visibility: hidden; } #screen-BUDGET, #screen-BUDGET * { visibility: visible; } #screen-BUDGET { position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; } .no-print { display: none !important; } .glass-card, .glass-panel { border: 1px solid #ccc; box-shadow: none; background: white; color: black; } input { color: black; border-bottom: 1px solid #ddd; } .text-white { color: black !important; } .text-gray-400 { color: #555 !important; } }
     </style>
@@ -98,7 +108,6 @@
 
             <!-- DASHBOARD -->
             <div id="screen-DASHBOARD" class="screen-content hidden flex flex-col h-full">
-                <!-- Calendar Widget -->
                 <div class="glass-card p-4 mb-6 flex justify-between items-center" onclick="window.showScreen('CALENDAR')">
                     <div>
                         <div class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Up Next</div>
@@ -109,37 +118,30 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <!-- Defrag: Uniform Icon Style -->
                     <button onclick="window.showScreen('DEFRAG')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
                         <div class="w-10 h-10 bg-[var(--lime-accent)] rounded-full flex items-center justify-center text-black"><i data-lucide="list-checks" class="w-5 h-5"></i></div>
                         <div><h3 class="text-sm font-medium text-white">Morning<br>Defrag</h3><p class="text-[10px] text-gray-500">Priorities</p></div>
                     </button>
-                    <!-- System Cooling -->
                     <button onclick="window.showScreen('CALIBRATION')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
                         <div class="w-10 h-10 bg-[var(--lime-accent)] rounded-full flex items-center justify-center text-black"><i data-lucide="wind" class="w-5 h-5"></i></div>
                         <div><h3 class="text-sm font-medium text-white">System<br>Cooling</h3><p class="text-[10px] text-gray-500">Regulate</p></div>
                     </button>
-                    <!-- Notepad -->
                     <button onclick="window.showScreen('NOTEPAD')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
                         <div class="w-10 h-10 bg-[var(--lime-accent)] rounded-full flex items-center justify-center text-black"><i data-lucide="sticky-note" class="w-5 h-5"></i></div>
                         <div><h3 class="text-sm font-medium text-white">Quick<br>Notes</h3><p class="text-[10px] text-gray-500">Ideas</p></div>
                     </button>
-                    <!-- Calendar -->
                     <button onclick="window.showScreen('CALENDAR')" class="glass-card p-4 text-left items-start h-32 flex flex-col justify-between hover:bg-white/5">
                         <div class="w-10 h-10 bg-[var(--lime-accent)] rounded-full flex items-center justify-center text-black"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
                         <div><h3 class="text-sm font-medium text-white">Schedule<br>& G-Cal</h3><p class="text-[10px] text-gray-500">Events</p></div>
                     </button>
-                    <!-- Budget -->
                     <button onclick="window.showScreen('BUDGET')" class="col-span-2 glass-card p-4 flex justify-between items-center text-left hover:bg-white/5">
                         <div class="flex items-center gap-3"><div class="w-10 h-10 bg-[var(--lime-accent)] rounded-full flex items-center justify-center text-black"><i data-lucide="pie-chart" class="w-5 h-5"></i></div><div><h3 class="text-sm font-medium text-white">Resource Allocation</h3><p class="text-[10px] text-gray-400">Financial Core</p></div></div>
                         <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
                     </button>
-                    <!-- Simulator -->
                     <button onclick="window.showScreen('SIMULATOR')" class="col-span-2 glass-card p-4 flex justify-between items-center text-left hover:bg-white/5">
                         <div class="flex items-center gap-3"><div class="w-10 h-10 bg-[var(--lime-accent)] rounded-full flex items-center justify-center text-black"><i data-lucide="message-square" class="w-5 h-5"></i></div><div><h3 class="text-sm font-medium text-white">Logic Simulator</h3><p class="text-[10px] text-gray-400">P.R.E.P. Framework</p></div></div>
                         <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
                     </button>
-                    <!-- Moral -->
                     <button onclick="window.showScreen('MORAL')" class="col-span-2 glass-card p-4 flex justify-between items-center text-left hover:bg-white/5">
                         <div class="flex items-center gap-3"><div class="w-10 h-10 bg-[var(--lime-accent)] rounded-full flex items-center justify-center text-black"><i data-lucide="shield" class="w-5 h-5"></i></div><div><h3 class="text-sm font-medium text-white">Prime Directives</h3><p class="text-[10px] text-gray-400">Moral Code</p></div></div>
                         <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
@@ -150,14 +152,11 @@
             <!-- DEFRAG -->
             <div id="screen-DEFRAG" class="screen-content hidden flex flex-col h-full">
                 <div class="flex items-center gap-2 mb-6 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
-                
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl text-white font-light">Morning Defrag</h2>
-                    <label class="month-selector-btn"><i data-lucide="calendar" class="w-4 h-4 text-[#D4F937]"></i><span id="defrag-display-date">Today</span><input type="date" id="defrag-date-picker" onchange="window.changeDefragDate(this.value)"></label>
+                    <label class="month-selector-btn"><i data-lucide="calendar" class="w-4 h-4 text-[#D4F937]"></i><span id="defrag-display-date" class="text-xs text-white">Today</span><input type="date" id="defrag-date-picker" onchange="window.changeDefragDate(this.value)"></label>
                 </div>
-                
                 <div id="defrag-list" class="space-y-3 flex-1"></div>
-                
                 <div class="mt-4 p-4 bg-[#111] rounded-2xl border border-[#222]">
                     <h3 class="text-xs text-gray-500 uppercase mb-2">AI Optimization</h3>
                     <p id="defrag-ai-suggestion" class="text-sm text-gray-300 italic">"Enter tasks above and click refine..."</p>
@@ -194,7 +193,6 @@
                         <button onclick="window.printBudget()" class="text-gray-400 text-xs flex items-center gap-1 hover:text-white"><i data-lucide="printer" class="w-3 h-3"></i> Print Report</button>
                     </div>
                 </div>
-                
                 <div id="budget-content-area" class="flex-1 overflow-y-auto pb-20 space-y-2">
                     <div id="budget-list"></div>
                     <div id="yearly-dashboard" class="hidden space-y-4"><div class="glass-panel p-4"><h3 class="text-sm font-medium text-white mb-3">Annual Velocity</h3><div id="yearly-stats-container" class="space-y-3"></div></div></div>
@@ -203,19 +201,12 @@
                 <!-- Insights Modal -->
                 <div id="budget-insights-modal" class="hidden fixed inset-0 z-50 bg-[#080808] p-4 flex flex-col overflow-y-auto">
                     <div class="flex justify-between mb-6 border-b border-white/10 pb-2"><h3 class="text-[#D4F937] font-bold">Insights</h3><button onclick="window.closeInsights()" class="text-white">✕</button></div>
-                    
                     <div class="glass-panel p-4 mb-6 flex flex-col items-center">
                         <h4 class="text-sm text-gray-400 mb-4 uppercase tracking-widest">Spending Breakdown</h4>
-                        <div id="pie-chart" class="chart-pie">
-                            <div class="chart-pie-center"><span class="text-xs text-white" id="pie-center-text">Total</span></div>
-                        </div>
+                        <div id="pie-chart" class="chart-pie"><div class="chart-pie-center"><span class="text-xs text-white" id="pie-center-text">Total</span></div></div>
                         <div id="pie-legend" class="mt-4 grid grid-cols-2 gap-2 w-full"></div>
                     </div>
-                    
-                    <div class="glass-panel p-4 mb-6">
-                         <h4 class="text-sm text-gray-400 mb-4 uppercase tracking-widest">Cash Flow</h4>
-                         <div id="bar-chart" class="chart-bar-container"></div>
-                    </div>
+                    <div class="glass-panel p-4 mb-6"><h4 class="text-sm text-gray-400 mb-4 uppercase tracking-widest">Cash Flow</h4><div id="bar-chart" class="chart-bar-container"></div></div>
                 </div>
 
                 <div id="finance-chat-modal" class="hidden absolute inset-0 z-50 bg-[#050505] p-4 flex flex-col">
@@ -266,10 +257,35 @@
             <!-- NOTEPAD -->
             <div id="screen-NOTEPAD" class="screen-content hidden flex flex-col h-full">
                 <div class="flex items-center gap-2 mb-4 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
-                <div class="glass-card p-4 flex-1 flex flex-col">
-                    <input id="note-title" class="bg-transparent text-xl text-white font-bold mb-4 outline-none" placeholder="Title" oninput="window.saveNotepad()">
-                    <textarea id="note-body" class="flex-1 bg-transparent text-sm text-gray-300 resize-none outline-none leading-relaxed" placeholder="Type here..." oninput="window.saveNotepad()"></textarea>
-                    <div id="note-status" class="text-[10px] text-gray-500 text-right mt-2">Saved</div>
+                <div class="flex gap-2 mb-4">
+                    <div class="flex-1 bg-[#1A1A1A] rounded-xl flex items-center px-3 py-2 border border-[#222]">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-500 mr-2"></i>
+                        <input id="note-search" placeholder="Search notes..." class="bg-transparent text-white text-sm w-full outline-none" oninput="window.renderNotes()">
+                    </div>
+                    <button onclick="window.openNoteEditor()" class="w-10 h-10 bg-[var(--lime-accent)] rounded-xl flex items-center justify-center text-black"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                </div>
+                <div id="note-folders" class="flex gap-2 overflow-x-auto pb-2 mb-2 no-scrollbar"></div>
+                <div id="notes-grid" class="grid grid-cols-2 gap-3 overflow-y-auto flex-1 pb-4"></div>
+                <div id="note-editor-modal" class="hidden fixed inset-0 z-50 bg-[#080808] flex flex-col p-4">
+                    <div class="flex justify-between items-center mb-6">
+                        <button onclick="window.closeNoteEditor()" class="text-gray-400"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+                        <div class="flex gap-4">
+                            <button onclick="window.togglePinNote()" id="btn-pin" class="text-gray-500"><i data-lucide="pin" class="w-5 h-5"></i></button>
+                            <button onclick="window.deleteNote()" class="text-red-400"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                        </div>
+                    </div>
+                    <input id="editor-title" class="bg-transparent text-2xl text-white font-bold mb-4 outline-none placeholder-[#333]" placeholder="Title">
+                    <textarea id="editor-body" class="flex-1 bg-transparent text-base text-gray-300 resize-none outline-none leading-relaxed placeholder-[#333]" placeholder="Note..."></textarea>
+                    <div class="flex justify-between items-center pt-4 border-t border-[#222]">
+                        <div class="flex gap-2" id="color-picker">
+                            <div onclick="window.setNoteColor('default')" id="color-default" class="color-swatch w-6 h-6 rounded-full border border-gray-600 bg-[#1A1A1A]"></div>
+                            <div onclick="window.setNoteColor('red')" id="color-red" class="color-swatch w-6 h-6 rounded-full bg-red-900/50 border border-red-500/30"></div>
+                            <div onclick="window.setNoteColor('blue')" id="color-blue" class="color-swatch w-6 h-6 rounded-full bg-blue-900/50 border border-blue-500/30"></div>
+                            <div onclick="window.setNoteColor('green')" id="color-green" class="color-swatch w-6 h-6 rounded-full bg-green-900/50 border border-green-500/30"></div>
+                            <div onclick="window.setNoteColor('yellow')" id="color-yellow" class="color-swatch w-6 h-6 rounded-full bg-yellow-900/50 border border-yellow-500/30"></div>
+                        </div>
+                        <button onclick="window.saveNoteAndClose()" class="px-4 py-2 bg-[var(--lime-accent)] rounded-full text-black text-sm font-bold">Save</button>
+                    </div>
                 </div>
             </div>
 
@@ -332,8 +348,8 @@
             { id: 'misc', title: 'Miscellaneous', items: ['Bank Fees', 'Postage', 'Microgreens', 'Other'] }
         ];
 
-        let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {title:'', body:''}, events: [], simData: { P1:'', R:'', E:'', P2:'' } };
-        let app, db, auth, userRef, breatheInterval, defragDebounce, budgetDebounce;
+        let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], simData: { P1:'', R:'', E:'', P2:'' } };
+        let app, db, auth, userRef, breatheInterval, currentNoteId = null, defragDebounce, budgetDebounce;
 
         // UTILS
         function safeSetText(id, val) { const el=document.getElementById(id); if(el) el.innerText=val; }
@@ -477,6 +493,11 @@
                 window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(t)}&dates=${s}/${s}`, '_blank');
             },
             deleteEvent: (i) => { appState.events.splice(i,1); saveData(); renderEvents(); },
+            addToGCal: (i) => {
+                const e=appState.events[i];
+                const s=e.date.replace(/-/g,'')+(e.time?`T${e.time.replace(':','')}00`:'');
+                window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.title)}&dates=${s}/${s}`, '_blank');
+            },
             addMoral: () => { const v=document.getElementById('moral-input').value; if(v){ appState.moralCodes.push({text:v,checked:false}); saveData(); renderMoral(); document.getElementById('moral-input').value=''; } },
             delMoral: (i) => { appState.moralCodes.splice(i,1); saveData(); renderMoral(); },
             toggleMoral: (i) => { appState.moralCodes[i].checked=!appState.moralCodes[i].checked; saveData(); renderMoral(); },
@@ -493,8 +514,11 @@
         function initMonth(m) { appState.budgetHistory[m] = budgetTemplate.map(c=>({ title:c.title, id:c.id, items:c.items.map(n=>({name:n,projected:0,actual:0})) })); }
         
         function renderNotepad() {
-            document.getElementById('note-title').value = appState.notepad.title;
-            document.getElementById('note-body').value = appState.notepad.body;
+            const tabs = document.getElementById('note-folders');
+            tabs.innerHTML = appState.notepad.folders.map(f => 
+                `<button onclick="window.changeFolder('${f}')" class="folder-tab whitespace-nowrap px-4 py-2 rounded-full text-xs font-medium border border-[#333] ${appState.notepad.activeFolder === f ? 'bg-[var(--lime-accent)] text-black' : 'bg-[#222] text-gray-400'}">${f}</button>`
+            ).join('');
+            window.renderNotes();
         }
 
         function renderBudget() {
@@ -667,12 +691,14 @@
             const s = localStorage.getItem('minto_ult_v2');
             if(s) appState = JSON.parse(s);
             if(!appState.defragHistory) appState.defragHistory = {}; // Migration fix
+            if(!appState.moralCodes) appState.moralCodes = []; // Migration fix
             refreshUI();
         }
         function refreshUI() {
+            // Only refresh active
             if(!document.getElementById('screen-BUDGET').classList.contains('hidden')) { renderBudget(); }
             if(!document.getElementById('screen-DEFRAG').classList.contains('hidden')) renderDefrag();
-            if(!document.getElementById('screen-NOTEPAD').classList.contains('hidden')) renderNotepad();
+            if(!document.getElementById('screen-NOTEPAD').classList.contains('hidden')) { document.getElementById('note-title').value=appState.notepad.title; document.getElementById('note-body').value=appState.notepad.body; }
             if(!document.getElementById('screen-MORAL').classList.contains('hidden')) renderMoral();
             if(!document.getElementById('screen-CALENDAR').classList.contains('hidden')) renderEvents();
             calculateTotals(); // Update dashboard widget
