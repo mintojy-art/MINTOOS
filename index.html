@@ -173,7 +173,8 @@
                         <div class="flex justify-between items-center">
                             <h2 class="text-lg font-medium text-white">Allocation</h2>
                             <div class="flex gap-2">
-                                <button onclick="window.toggleBudgetVis()" class="text-[10px] px-3 py-1 rounded bg-[#222] text-[#D4F937] border border-[#333]">Visual Insights</button>
+                                <button onclick="window.showScreen('BILLS')" class="text-[10px] px-3 py-1 rounded bg-[#222] text-white border border-[#333]">Docs</button>
+                                <button onclick="window.toggleBudgetVis()" class="text-[10px] px-3 py-1 rounded bg-[#222] text-[#D4F937] border border-[#333]">Insights</button>
                                 <button id="budget-view-toggle" onclick="window.toggleBudgetMode()" class="text-[10px] px-2 py-1 rounded bg-white/10 text-[#D4F937] border border-white/20">Monthly</button>
                             </div>
                         </div>
@@ -198,7 +199,6 @@
                     <div id="yearly-dashboard" class="hidden space-y-4"><div class="glass-panel p-4"><h3 class="text-sm font-medium text-white mb-3">Annual Velocity</h3><div id="yearly-stats-container" class="space-y-3"></div></div></div>
                 </div>
                 
-                <!-- Insights Modal -->
                 <div id="budget-insights-modal" class="hidden fixed inset-0 z-50 bg-[#080808] p-4 flex flex-col overflow-y-auto">
                     <div class="flex justify-between mb-6 border-b border-white/10 pb-2"><h3 class="text-[#D4F937] font-bold">Insights</h3><button onclick="window.closeInsights()" class="text-white">✕</button></div>
                     <div class="glass-panel p-4 mb-6 flex flex-col items-center">
@@ -216,27 +216,54 @@
                 </div>
             </div>
 
+            <!-- NEW: BILLS & DOCS -->
+            <div id="screen-BILLS" class="screen-content hidden flex flex-col h-full">
+                <div class="flex items-center gap-2 mb-4 cursor-pointer opacity-70" onclick="window.showScreen('BUDGET')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back to Budget</span></div>
+                <div class="glass-card p-4 mb-4">
+                    <h2 class="text-lg text-white mb-2">Expense Documentation</h2>
+                    <p class="text-xs text-gray-400 mb-4">Upload bills and invoices to track spending.</p>
+                    <div class="flex gap-2 mb-4">
+                         <label class="flex-1 bg-[#222] rounded-xl flex flex-col items-center justify-center py-4 cursor-pointer border border-[#333] hover:border-[#D4F937]">
+                             <i data-lucide="camera" class="w-6 h-6 text-[#D4F937] mb-2"></i>
+                             <span class="text-xs text-gray-300">Take Photo</span>
+                             <input type="file" accept="image/*" capture="environment" class="hidden" onchange="window.handleBillUpload(this)">
+                         </label>
+                         <label class="flex-1 bg-[#222] rounded-xl flex flex-col items-center justify-center py-4 cursor-pointer border border-[#333] hover:border-[#D4F937]">
+                             <i data-lucide="upload" class="w-6 h-6 text-[#D4F937] mb-2"></i>
+                             <span class="text-xs text-gray-300">Upload File</span>
+                             <input type="file" accept="image/*,application/pdf" class="hidden" onchange="window.handleBillUpload(this)">
+                         </label>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mb-2 px-2"><h3 class="text-sm font-medium text-white">History</h3><span id="bill-total" class="text-xs text-[#D4F937]">Total: ₹0</span></div>
+                <div id="bill-list" class="flex-1 overflow-y-auto space-y-3 pb-20"></div>
+                
+                <!-- Bill Editor Modal -->
+                <div id="bill-editor-modal" class="hidden fixed inset-0 z-50 bg-[#080808] flex flex-col p-4">
+                    <div class="flex justify-between mb-6"><h3 class="text-white font-bold">New Bill</h3><button onclick="window.closeBillEditor()" class="text-gray-400">✕</button></div>
+                    <div class="flex-1 space-y-4">
+                        <div id="bill-preview" class="w-full h-48 bg-[#111] rounded-xl bg-cover bg-center border border-[#333]"></div>
+                        <input id="bill-amount" type="number" class="w-full input-zen p-3 text-lg" placeholder="Amount (₹)">
+                        <input id="bill-merchant" type="text" class="w-full input-zen p-3" placeholder="Merchant / Category">
+                        <textarea id="bill-note" class="w-full input-zen p-3 h-24" placeholder="Notes..."></textarea>
+                        <input id="bill-date" type="date" class="w-full input-zen p-3">
+                    </div>
+                    <button onclick="window.saveBill()" class="btn-primary w-full py-3 mt-4">Save Record</button>
+                </div>
+            </div>
+
             <!-- SYSTEM COOLING -->
             <div id="screen-CALIBRATION" class="screen-content hidden flex flex-col h-full items-center">
                 <div class="w-full flex items-center gap-2 mb-8 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
                 <h2 class="text-2xl font-light text-white mb-2">Breathe</h2>
-                <p class="text-xs text-gray-400 mb-8">Reset your nervous system</p>
                 <div class="breath-ring-container mb-12">
-                    <svg class="breath-ring-svg" viewBox="0 0 260 260">
-                        <circle cx="130" cy="130" r="120" class="breath-ring-circle-bg"></circle>
-                        <circle id="breath-progress" cx="130" cy="130" r="120" class="breath-ring-circle"></circle>
-                    </svg>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div id="breath-core" class="breath-inner-circle"><span id="breath-text" class="text-white text-sm font-medium tracking-widest opacity-80">Ready</span></div>
-                    </div>
+                    <svg class="breath-ring-svg" viewBox="0 0 260 260"><circle cx="130" cy="130" r="120" class="breath-ring-circle-bg"></circle><circle id="breath-progress" cx="130" cy="130" r="120" class="breath-ring-circle"></circle></svg>
+                    <div class="absolute inset-0 flex items-center justify-center"><div id="breath-core" class="breath-inner-circle"><span id="breath-text" class="text-white text-sm font-medium tracking-widest opacity-80">Ready</span></div></div>
                 </div>
-                <div class="w-full max-w-xs">
-                    <p class="text-center text-xs text-gray-500 mb-4">Choose your state:</p>
-                    <div class="flex justify-between gap-2">
-                        <button onclick="window.startBreathe('Anxiety')" class="breath-state-btn flex-1" id="btn-anxiety">Anxiety</button>
-                        <button onclick="window.startBreathe('Anger')" class="breath-state-btn flex-1" id="btn-anger">Anger</button>
-                        <button onclick="window.startBreathe('Stress')" class="breath-state-btn flex-1" id="btn-stress">Stress</button>
-                    </div>
+                <div class="w-full max-w-xs flex justify-between gap-2">
+                    <button onclick="window.startBreathe('Anxiety')" class="breath-state-btn flex-1" id="btn-anxiety">Anxiety</button>
+                    <button onclick="window.startBreathe('Anger')" class="breath-state-btn flex-1" id="btn-anger">Anger</button>
+                    <button onclick="window.startBreathe('Stress')" class="breath-state-btn flex-1" id="btn-stress">Stress</button>
                 </div>
                 <button onclick="window.stopBreathe()" class="mt-6 text-xs text-red-400">Stop Session</button>
             </div>
@@ -270,7 +297,6 @@
                     <div class="flex justify-between items-center mb-6">
                         <button onclick="window.closeNoteEditor()" class="text-gray-400"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
                         <div class="flex gap-4">
-                            <!-- MICROPHONE BUTTON -->
                             <button onclick="window.startDictation()" class="text-gray-500"><i data-lucide="mic" class="w-5 h-5"></i></button>
                             <button onclick="window.togglePinNote()" id="btn-pin" class="text-gray-500"><i data-lucide="pin" class="w-5 h-5"></i></button>
                             <button onclick="window.deleteNote()" class="text-red-400"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
@@ -296,11 +322,7 @@
                 <div class="flex items-center gap-2 mb-4 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
                 <div class="glass-card p-4 mb-4">
                     <h2 class="text-lg text-white mb-4">Schedule</h2>
-                    <div class="space-y-3 mb-6">
-                        <input id="cal-title" class="w-full input-zen p-3 text-sm" placeholder="Meeting Title">
-                        <div class="flex gap-2"><input id="cal-date" type="date" class="flex-1 input-zen p-3 text-sm"><input id="cal-time" type="time" class="flex-1 input-zen p-3 text-sm"></div>
-                        <button onclick="window.addEvent()" class="btn-primary w-full py-2 text-sm">Add Event</button>
-                    </div>
+                    <div class="space-y-3 mb-6"><input id="cal-title" class="w-full input-zen p-3 text-sm" placeholder="Meeting Title"><div class="flex gap-2"><input id="cal-date" type="date" class="flex-1 input-zen p-3 text-sm"><input id="cal-time" type="time" class="flex-1 input-zen p-3 text-sm"></div><button onclick="window.addEvent()" class="btn-primary w-full py-2 text-sm">Add Event</button></div>
                     <div id="event-list" class="space-y-2"></div>
                 </div>
             </div>
@@ -321,7 +343,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithRedirect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- CONFIG ---
         const firebaseConfig = {
@@ -335,7 +357,6 @@
         };
         const apiKey = "AIzaSyDRAqvQVccL8YSKjyNc8N3ih9YYmMtJ3Dc"; // Gemini Key
 
-        // --- TEMPLATE ---
         const budgetTemplate = [
             { id: 'income', title: 'Income', items: ['Salary', 'Freelance Income', 'Dividends', 'Gifts Received', 'Refunds/Reimbursements', 'Transfer From Savings', 'Tax', 'Other'] },
             { id: 'home', title: 'Home Expenses', items: ['Mortgage/Rent', 'Home/Rental Insurance', 'Electricity', 'Gas/Oil', 'Water/Sewer/Trash', 'Phone', 'Cable/Satellite', 'Internet', 'Furnishings/Appliances', 'Lawn/Garden', 'Maintenance/Supplies', 'Improvements', 'Other'] },
@@ -350,8 +371,8 @@
             { id: 'misc', title: 'Miscellaneous', items: ['Bank Fees', 'Postage', 'Microgreens', 'Other'] }
         ];
 
-        let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], simData: { P1:'', R:'', E:'', P2:'' } };
-        let app, db, auth, userRef, breatheInterval, currentNoteId = null, defragDebounce, budgetDebounce;
+        let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], bills: [], simData: { P1:'', R:'', E:'', P2:'' } };
+        let app, db, auth, userRef, breatheInterval, currentNoteId = null, currentBillImage = null;
 
         // UTILS
         function safeSetText(id, val) { const el=document.getElementById(id); if(el) el.innerText=val; }
@@ -367,15 +388,16 @@
                 if(id==='MORAL') renderMoral();
                 if(id==='SIMULATOR') initSim();
                 if(id==='NOTEPAD') renderNotepad();
+                if(id==='BILLS') renderBills();
                 if(id!=='CALIBRATION') window.stopBreathe();
                 refreshIcons();
             },
             handleAuth: async () => {
                 if(!auth) return alert("Config Missing");
                 if(auth.currentUser) { await signOut(auth); location.reload(); }
-                else { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e) { alert(e.message); } }
+                else { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e) { if (e.code === 'auth/popup-blocked') await signInWithRedirect(auth, new GoogleAuthProvider()); else alert(e.message); } }
             },
-            // Budget
+            // --- RESOURCE ALLOCATION ---
             changeMonth: (val) => { if(val) { appState.currentMonth=val; document.getElementById('month-display-text').innerText=val; saveData(); renderBudget(); } },
             toggleBudgetMode: () => {
                 appState.budgetViewMode = appState.budgetViewMode==='monthly' ? 'yearly' : 'monthly';
@@ -387,17 +409,10 @@
                 if(appState.budgetViewMode==='yearly') return;
                 const m = appState.currentMonth;
                 if(!appState.budgetHistory[m]) initMonth(m);
-                
-                // DEBOUNCE UPDATE: Only update logic, don't re-render entire list
                 appState.budgetHistory[m][c].items[i][f] = parseFloat(v) || 0;
-                
-                // Update only totals visually
+                saveData(); calculateTotals(); 
                 const sub = appState.budgetHistory[m][c].items.reduce((s,x)=>s+x.actual,0);
                 safeSetText(`sub-${c}`, `₹${sub.toLocaleString()}`);
-                calculateTotals();
-                
-                clearTimeout(budgetDebounce);
-                budgetDebounce = setTimeout(saveData, 1000);
             },
             printBudget: () => window.print(),
             openFinanceChat: () => document.getElementById('finance-chat-modal').classList.remove('hidden'),
@@ -409,40 +424,136 @@
                 const res = await callGemini(prompt);
                 hist.innerHTML += `<div class="chat-bubble chat-ai">${res}</div>`;
             },
-            toggleBudgetVis: () => {
-                document.getElementById('budget-insights-modal').classList.remove('hidden');
-                drawCharts();
-            },
+            toggleBudgetVis: () => { document.getElementById('budget-insights-modal').classList.remove('hidden'); drawCharts(); },
             closeInsights: () => document.getElementById('budget-insights-modal').classList.add('hidden'),
+
+            // --- DOCS (BILLS) ---
+            handleBillUpload: (input) => {
+                const file = input.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        currentBillImage = e.target.result;
+                        document.getElementById('bill-editor-modal').classList.remove('hidden');
+                        document.getElementById('bill-preview').style.backgroundImage = `url(${currentBillImage})`;
+                        document.getElementById('bill-date').value = new Date().toISOString().split('T')[0];
+                    };
+                    reader.readAsDataURL(file);
+                }
+            },
+            closeBillEditor: () => { document.getElementById('bill-editor-modal').classList.add('hidden'); currentBillImage = null; },
+            saveBill: () => {
+                const amt = parseFloat(document.getElementById('bill-amount').value) || 0;
+                const merch = document.getElementById('bill-merchant').value;
+                const note = document.getElementById('bill-note').value;
+                const date = document.getElementById('bill-date').value;
+                if(!amt || !merch) return alert("Enter amount & details");
+                
+                appState.bills.push({ id:Date.now(), img: currentBillImage, amt, merch, note, date });
+                saveData(); renderBills(); window.closeBillEditor();
+            },
             
-            // Defrag
+            // --- NOTEPAD ---
+            renderNotes: () => {
+                const grid = document.getElementById('notes-grid'); grid.innerHTML = '';
+                const query = document.getElementById('note-search').value.toLowerCase();
+                const folder = appState.notepad.activeFolder;
+                if(!Array.isArray(appState.notepad.notes)) appState.notepad.notes = [];
+                const notes = appState.notepad.notes.filter(n => (n.title.toLowerCase().includes(query) || n.body.toLowerCase().includes(query)) && (folder === 'All' || n.folder === folder)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+                notes.forEach(n => {
+                    const colorClass = `note-color-${n.color||'default'}`;
+                    const el = document.createElement('div');
+                    el.className = `p-4 rounded-2xl border flex flex-col justify-between h-32 cursor-pointer relative overflow-hidden ${colorClass}`;
+                    el.onclick = () => window.openNoteEditor(n.id);
+                    el.innerHTML = `<div><h3 class="text-white font-bold text-sm truncate pr-4">${n.title||'Untitled'}</h3><p class="text-xs text-gray-400 line-clamp-3 mt-1">${n.body||''}</p></div><div class="flex justify-between items-end mt-2"><span class="text-[10px] text-gray-500">${n.folder||'General'}</span>${n.pinned?'<i data-lucide="pin" class="w-3 h-3 text-[var(--lime-accent)]"></i>':''}</div>`;
+                    grid.appendChild(el);
+                });
+                refreshIcons();
+            },
+            openNoteEditor: (id=null) => {
+                currentNoteId = id;
+                document.getElementById('note-editor-modal').classList.remove('hidden');
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                if(id) {
+                    const note = appState.notepad.notes.find(n=>n.id===id);
+                    document.getElementById('editor-title').value=note.title; document.getElementById('editor-body').value=note.body;
+                    document.getElementById('btn-pin').classList.toggle('text-[var(--lime-accent)]', note.pinned);
+                    const colorId = `color-${note.color || 'default'}`;
+                    const colorEl = document.getElementById(colorId);
+                    if(colorEl) colorEl.classList.add('selected');
+                } else {
+                    document.getElementById('editor-title').value=''; document.getElementById('editor-body').value='';
+                    document.getElementById('btn-pin').classList.remove('text-[var(--lime-accent)]');
+                    document.getElementById('color-default').classList.add('selected');
+                }
+                refreshIcons();
+            },
+            closeNoteEditor: () => document.getElementById('note-editor-modal').classList.add('hidden'),
+            saveNoteAndClose: () => {
+                const title = document.getElementById('editor-title').value;
+                const body = document.getElementById('editor-body').value;
+                let activeColor = 'default';
+                document.querySelectorAll('.color-swatch').forEach(s => { if(s.classList.contains('selected')) activeColor = s.id.replace('color-', ''); });
+                if(!title && !body) return window.closeNoteEditor();
+                if(currentNoteId) {
+                    const note = appState.notepad.notes.find(n=>n.id===currentNoteId);
+                    note.title=title; note.body=body; note.updated=Date.now(); note.color = activeColor;
+                } else {
+                    appState.notepad.notes.push({ id: Date.now().toString(), title, body, color:activeColor, folder:appState.notepad.activeFolder==='All'?'Personal':appState.notepad.activeFolder, pinned:false, updated:Date.now() });
+                }
+                saveData(); window.renderNotes(); window.closeNoteEditor();
+            },
+            deleteNote: () => { if(currentNoteId) { appState.notepad.notes=appState.notepad.notes.filter(n=>n.id!==currentNoteId); saveData(); window.renderNotes(); } window.closeNoteEditor(); },
+            togglePinNote: () => { if(currentNoteId) { const n=appState.notepad.notes.find(x=>x.id===currentNoteId); n.pinned=!n.pinned; document.getElementById('btn-pin').classList.toggle('text-[var(--lime-accent)]', n.pinned); saveData(); } },
+            setNoteColor: (c) => { 
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                document.getElementById(`color-${c}`).classList.add('selected');
+                if(currentNoteId) { const note = appState.notepad.notes.find(x=>x.id===currentNoteId); if(note) { note.color=c; saveData(); } } 
+            },
+            changeFolder: (f) => {
+                appState.notepad.activeFolder = f;
+                document.querySelectorAll('.folder-tab').forEach(t => {
+                    t.classList.toggle('bg-[var(--lime-accent)]', t.innerText===f); t.classList.toggle('text-black', t.innerText===f);
+                    t.classList.toggle('bg-[#222]', t.innerText!==f); t.classList.toggle('text-gray-400', t.innerText!==f);
+                });
+                window.renderNotes();
+            },
+            startDictation: () => {
+                if ('webkitSpeechRecognition' in window) {
+                    const recognition = new webkitSpeechRecognition();
+                    recognition.continuous = false; recognition.interimResults = false; recognition.lang = 'en-US';
+                    recognition.start();
+                    recognition.onresult = function(e) {
+                        const transcript = e.results[0][0].transcript;
+                        document.getElementById('editor-body').value += (document.getElementById('editor-body').value ? ' ' : '') + transcript;
+                    };
+                    recognition.onerror = function(e) { alert("Mic Error: " + e.error); };
+                } else { alert("Speech to text not supported."); }
+            },
+            
+            // --- MORAL (EDITABLE) ---
+            addMoral: () => { const v=document.getElementById('moral-input').value; if(v){ appState.moralCodes.push({text:v,checked:false}); saveData(); renderMoral(); document.getElementById('moral-input').value=''; } },
+            delMoral: (i) => { appState.moralCodes.splice(i,1); saveData(); renderMoral(); },
+            toggleMoral: (i) => { appState.moralCodes[i].checked=!appState.moralCodes[i].checked; saveData(); renderMoral(); },
+            updateMoral: (i, v) => { appState.moralCodes[i].text=v; saveData(); },
+            refineMoralCode: async () => {
+                const v=document.getElementById('moral-input').value;
+                if(!v) return alert("Type draft first");
+                const res=await callGemini(`Refine into stoic maxim: ${v}`);
+                document.getElementById('moral-input').value=res;
+            },
+
+            // --- DEFRAG & SIM & BREATHE & CAL (Standard) ---
             changeDefragDate: (v) => { if(v) { document.getElementById('defrag-display-date').innerText=v; ensureDefrag(v); renderDefrag(v); } },
-            toggleDefrag: (i) => {
-                const d = document.getElementById('defrag-date-picker').value || new Date().toISOString().split('T')[0];
-                ensureDefrag(d);
-                appState.defragHistory[d][i].done = !appState.defragHistory[d][i].done;
-                saveData(); renderDefrag(d);
-            },
-            updateDefrag: (i, v) => {
-                const d = document.getElementById('defrag-date-picker').value || new Date().toISOString().split('T')[0];
-                ensureDefrag(d);
-                appState.defragHistory[d][i].text = v;
-                // Debounce Save for smooth typing
-                clearTimeout(defragDebounce);
-                defragDebounce = setTimeout(saveData, 1000);
-            },
-            resetDefrag: () => {
-                const d = document.getElementById('defrag-date-picker').value || new Date().toISOString().split('T')[0];
-                appState.defragHistory[d] = [{text:'',done:false},{text:'',done:false},{text:'',done:false}]; saveData(); renderDefrag(d);
-            },
+            toggleDefrag: (i) => { const d=document.getElementById('defrag-date-picker').value; ensureDefrag(d); appState.defragHistory[d][i].done=!appState.defragHistory[d][i].done; saveData(); renderDefrag(d); },
+            updateDefrag: (i,v) => { const d=document.getElementById('defrag-date-picker').value; ensureDefrag(d); appState.defragHistory[d][i].text=v; saveData(); },
+            resetDefrag: () => { const d=document.getElementById('defrag-date-picker').value; appState.defragHistory[d]=[{text:'',done:false},{text:'',done:false},{text:'',done:false}]; saveData(); renderDefrag(d); },
             optimizeDefrag: async () => {
-                const d = document.getElementById('defrag-date-picker').value || new Date().toISOString().split('T')[0]; ensureDefrag(d);
-                const tasks = appState.defragHistory[d].map(x=>x.text).join(', ');
-                if(!tasks) return alert("Enter tasks first");
-                const res = await callGemini(`Rewrite these tasks as executive commands: ${tasks}`);
-                document.getElementById('defrag-ai-suggestion').innerText = res;
+                const d=document.getElementById('defrag-date-picker').value; ensureDefrag(d);
+                const tasks=appState.defragHistory[d].map(x=>x.text).join(', ');
+                const res=await callGemini(`Rewrite executive: ${tasks}`);
+                document.getElementById('defrag-ai-suggestion').innerText=res;
             },
-            // Sim
             startSim: () => { document.getElementById('sim-step-0').classList.add('hidden'); document.getElementById('sim-active').classList.remove('hidden'); renderSimStep(); },
             nextSim: () => {
                 const keys = ["P1", "R", "E", "P2"];
@@ -453,10 +564,9 @@
             },
             runSimDiagnostics: async () => {
                 const fb=document.getElementById('sim-ai-feedback'); fb.classList.remove('hidden'); fb.innerText="Analyzing...";
-                const res = await callGemini(`Grade logic: Point ${appState.simData.P1}, Reason ${appState.simData.R}`);
+                const res=await callGemini(`Grade logic: Point ${appState.simData.P1}, Reason ${appState.simData.R}`);
                 fb.innerText=res;
             },
-            // Breathe
             startBreathe: (st) => {
                 if(breatheInterval) window.stopBreathe();
                 const txt=document.getElementById('breath-text'), ring=document.getElementById('breath-progress'), core=document.getElementById('breath-core');
@@ -488,149 +598,36 @@
                 const s=d.replace(/-/g,'')+(tm?`T${tm.replace(':','')}00`:'');
                 window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(t)}&dates=${s}/${s}`, '_blank');
             },
-            deleteEvent: (i) => { appState.events.splice(i,1); saveData(); renderEvents(); },
-            addMoral: () => { const v=document.getElementById('moral-input').value; if(v){ appState.moralCodes.push({text:v,checked:false}); saveData(); renderMoral(); document.getElementById('moral-input').value=''; } },
-            delMoral: (i) => { appState.moralCodes.splice(i,1); saveData(); renderMoral(); },
-            toggleMoral: (i) => { appState.moralCodes[i].checked=!appState.moralCodes[i].checked; saveData(); renderMoral(); },
-            refineMoralCode: async () => {
-                const v=document.getElementById('moral-input').value;
-                if(!v) return alert("Type draft first");
-                const res=await callGemini(`Refine into stoic maxim: ${v}`);
-                document.getElementById('moral-input').value=res;
-            },
-            // --- NOTEPAD (REBUILT) ---
-            renderNotes: () => {
-                const grid = document.getElementById('notes-grid'); grid.innerHTML = '';
-                const query = document.getElementById('note-search').value.toLowerCase();
-                const folder = appState.notepad.activeFolder;
-                // Ensure array
-                if(!Array.isArray(appState.notepad.notes)) appState.notepad.notes = [];
-                
-                const notes = appState.notepad.notes.filter(n => (n.title.toLowerCase().includes(query) || n.body.toLowerCase().includes(query)) && (folder === 'All' || n.folder === folder)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
-                
-                notes.forEach(n => {
-                    const colorClass = `note-color-${n.color||'default'}`;
-                    const el = document.createElement('div');
-                    el.className = `p-4 rounded-2xl border flex flex-col justify-between h-32 cursor-pointer relative overflow-hidden ${colorClass}`;
-                    el.onclick = () => window.openNoteEditor(n.id);
-                    el.innerHTML = `<div><h3 class="text-white font-bold text-sm truncate pr-4">${n.title||'Untitled'}</h3><p class="text-xs text-gray-400 line-clamp-3 mt-1">${n.body||''}</p></div><div class="flex justify-between items-end mt-2"><span class="text-[10px] text-gray-500">${n.folder||'General'}</span>${n.pinned?'<i data-lucide="pin" class="w-3 h-3 text-[var(--lime-accent)]"></i>':''}</div>`;
-                    grid.appendChild(el);
-                });
-                refreshIcons();
-            },
-            openNoteEditor: (id=null) => {
-                currentNoteId = id;
-                document.getElementById('note-editor-modal').classList.remove('hidden');
-                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-                
-                if(id) {
-                    const note = appState.notepad.notes.find(n=>n.id===id);
-                    document.getElementById('editor-title').value=note.title; document.getElementById('editor-body').value=note.body;
-                    document.getElementById('btn-pin').classList.toggle('text-[var(--lime-accent)]', note.pinned);
-                    const colorId = `color-${note.color || 'default'}`;
-                    const colorEl = document.getElementById(colorId);
-                    if(colorEl) colorEl.classList.add('selected');
-                } else {
-                    document.getElementById('editor-title').value=''; document.getElementById('editor-body').value='';
-                    document.getElementById('btn-pin').classList.remove('text-[var(--lime-accent)]');
-                    document.getElementById('color-default').classList.add('selected');
-                }
-                refreshIcons();
-            },
-            closeNoteEditor: () => document.getElementById('note-editor-modal').classList.add('hidden'),
-            saveNoteAndClose: () => {
-                const title = document.getElementById('editor-title').value;
-                const body = document.getElementById('editor-body').value;
-                let activeColor = 'default';
-                document.querySelectorAll('.color-swatch').forEach(s => { if(s.classList.contains('selected')) activeColor = s.id.replace('color-', ''); });
-
-                if(!title && !body) return window.closeNoteEditor();
-                
-                if(currentNoteId) {
-                    const note = appState.notepad.notes.find(n=>n.id===currentNoteId);
-                    note.title=title; note.body=body; note.updated=Date.now(); note.color = activeColor;
-                } else {
-                    appState.notepad.notes.push({
-                        id: Date.now().toString(), title, body, 
-                        color:activeColor, 
-                        folder:appState.notepad.activeFolder==='All'?'Personal':appState.notepad.activeFolder, 
-                        pinned:false, updated:Date.now()
-                    });
-                }
-                saveData(); 
-                window.renderNotes(); 
-                window.closeNoteEditor();
-            },
-            deleteNote: () => { if(currentNoteId) { appState.notepad.notes=appState.notepad.notes.filter(n=>n.id!==currentNoteId); saveData(); window.renderNotes(); } window.closeNoteEditor(); },
-            togglePinNote: () => { 
-                if(currentNoteId) { 
-                    const n=appState.notepad.notes.find(x=>x.id===currentNoteId); 
-                    n.pinned=!n.pinned; 
-                    document.getElementById('btn-pin').classList.toggle('text-[var(--lime-accent)]', n.pinned); 
-                    saveData(); 
-                } 
-            },
-            setNoteColor: (c) => { 
-                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-                document.getElementById(`color-${c}`).classList.add('selected');
-                if(currentNoteId) { const note = appState.notepad.notes.find(x=>x.id===currentNoteId); if(note) { note.color=c; saveData(); } } 
-            },
-            changeFolder: (f) => {
-                appState.notepad.activeFolder = f;
-                document.querySelectorAll('.folder-tab').forEach(t => {
-                    t.classList.toggle('bg-[var(--lime-accent)]', t.innerText===f); t.classList.toggle('text-black', t.innerText===f);
-                    t.classList.toggle('bg-[#222]', t.innerText!==f); t.classList.toggle('text-gray-400', t.innerText!==f);
-                });
-                window.renderNotes();
-            },
-            // MICROPHONE
-            startDictation: () => {
-                if ('webkitSpeechRecognition' in window) {
-                    const recognition = new webkitSpeechRecognition();
-                    recognition.continuous = false;
-                    recognition.interimResults = false;
-                    recognition.lang = 'en-US';
-                    recognition.start();
-                    recognition.onresult = function(e) {
-                        const transcript = e.results[0][0].transcript;
-                        document.getElementById('editor-body').value += (document.getElementById('editor-body').value ? ' ' : '') + transcript;
-                    };
-                    recognition.onerror = function(e) { alert("Mic Error: " + e.error); };
-                } else { alert("Speech to text not supported in this browser."); }
-            }
+            deleteEvent: (i) => { appState.events.splice(i,1); saveData(); renderEvents(); }
         });
 
-        // --- HELPERS ---
+        // --- HELPERS & RENDERERS ---
         function ensureDefrag(d) { if(!appState.defragHistory[d]) appState.defragHistory[d]=[{text:'',done:false},{text:'',done:false},{text:'',done:false}]; }
         function initMonth(m) { appState.budgetHistory[m] = budgetTemplate.map(c=>({ title:c.title, id:c.id, items:c.items.map(n=>({name:n,projected:0,actual:0})) })); }
         
-        function renderNotepad() {
-            const tabs = document.getElementById('note-folders');
-            tabs.innerHTML = appState.notepad.folders.map(f => 
-                `<button onclick="window.changeFolder('${f}')" class="folder-tab whitespace-nowrap px-4 py-2 rounded-full text-xs font-medium border border-[#333] ${appState.notepad.activeFolder === f ? 'bg-[var(--lime-accent)] text-black' : 'bg-[#222] text-gray-400'}">${f}</button>`
-            ).join('');
-            window.renderNotes();
+        function renderBills() {
+            const list = document.getElementById('bill-list'); list.innerHTML = '';
+            let total = 0;
+            appState.bills.sort((a,b) => b.id - a.id).forEach(b => {
+                total += b.amt;
+                list.innerHTML += `<div class="glass-panel p-3 flex gap-3 items-center">
+                    <div class="w-12 h-12 bg-cover bg-center rounded-lg flex-shrink-0 border border-[#333]" style="background-image: url(${b.img})"></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-white text-sm font-medium truncate">${b.merch}</div>
+                        <div class="text-xs text-gray-500">${b.date} • ${b.note}</div>
+                    </div>
+                    <div class="text-[var(--lime-accent)] text-sm font-bold">₹${b.amt}</div>
+                </div>`;
+            });
+            safeSetText('bill-total', `Total: ₹${total.toLocaleString()}`);
         }
 
         function renderBudget() {
-            const list = document.getElementById('budget-list');
-            const dash = document.getElementById('yearly-dashboard');
-            const picker = document.getElementById('budget-month-selector');
-            
-            if(appState.budgetViewMode === 'yearly') {
-                list.classList.add('hidden'); dash.classList.remove('hidden'); picker.disabled=true;
-                renderYearly();
-                return;
-            }
-            
-            list.classList.remove('hidden'); dash.classList.add('hidden'); picker.disabled=false;
-            list.innerHTML = '';
-            
+            const list = document.getElementById('budget-list'); list.innerHTML = '';
             const m = appState.currentMonth;
-            safeSetText('month-display-text', m);
-            const pEl = document.getElementById('budget-month-selector'); if(pEl) pEl.value = m;
+            document.getElementById('month-display-text').innerText = m;
+            document.getElementById('budget-month-selector').value = m;
             if(!appState.budgetHistory[m]) initMonth(m);
-            
             appState.budgetHistory[m].forEach((cat, idx) => {
                 const sub = cat.items.reduce((s,i)=>s+i.actual,0);
                 const el = document.createElement('div');
@@ -663,55 +660,61 @@
         function calculateTotals() {
             let inc=0, exp=0;
             const m = appState.currentMonth;
-            if(appState.budgetViewMode==='yearly') { /* Aggregation */ } 
+            if(appState.budgetViewMode==='yearly') { 
+                const y = m.split('-')[0];
+                Object.keys(appState.budgetHistory).filter(k=>k.startsWith(y)).forEach(k => {
+                    appState.budgetHistory[k].forEach(c => c.items.forEach(i => { if(c.id==='income') inc+=i.actual; else exp+=i.actual; }));
+                });
+            } 
             else if(appState.budgetHistory[m]) {
                 appState.budgetHistory[m].forEach(c => c.items.forEach(i => { if(c.id==='income') inc+=i.actual; else exp+=i.actual; }));
             }
             safeSetText('summary-income', `₹${inc.toLocaleString()}`);
             safeSetText('summary-expense', `₹${exp.toLocaleString()}`);
             safeSetText('summary-net', `₹${(inc-exp).toLocaleString()}`);
-            safeSetText('dash-net-worth', `₹${(inc-exp).toLocaleString()}`);
         }
 
         function drawCharts() {
             const m = appState.currentMonth;
+            // Handle empty data
             if(!appState.budgetHistory[m]) return;
+            
             const data = appState.budgetHistory[m].filter(c => c.id !== 'income' && c.items.reduce((s,i)=>s+i.actual,0) > 0);
             
-            // Pie Chart (CSS Conic) - Updated Colors
             let total = 0; 
             const segments = data.map(c => { const v=c.items.reduce((s,i)=>s+i.actual,0); total+=v; return {l:c.title, v}; });
             
-            if(total===0) return;
-
-            let grad = []; let start=0; 
-            const colors = ['#D4F937','#28C7FA','#F43F5E','#A855F7','#F59E0B','#10B981']; // Neon Palette
+            // Charts Logic
+            let inc=0, exp=0;
+            appState.budgetHistory[m].forEach(c => c.items.forEach(x => { if(c.id==='income') inc+=x.actual; else exp+=x.actual; }));
+            const max = Math.max(inc, exp) || 1;
+            document.getElementById('bar-chart').innerHTML = `
+                <div class="chart-bar bg-green-500" style="height:${(inc/max)*100}px"><div class="chart-bar-label">In</div></div>
+                <div class="chart-bar bg-red-500" style="height:${(exp/max)*100}px"><div class="chart-bar-label">Out</div></div>
+            `;
             
             const legend = document.getElementById('pie-legend'); legend.innerHTML='';
+            const pie = document.getElementById('pie-chart');
+            
+            if(total === 0) {
+                 pie.style.background = '#222';
+                 safeSetText('pie-center-text', 'No Data');
+                 return;
+            }
+
+            let grad = []; let start=0; 
+            // High Contrast Palette
+            const colors = ['#D4F937', '#2563EB', '#EC4899', '#8B5CF6', '#F97316', '#14B8A6'];
             
             segments.forEach((s, i) => {
                 const deg = (s.v/total)*360;
                 const col = colors[i%colors.length];
                 grad.push(`${col} ${start}deg ${start+deg}deg`);
                 start += deg;
-                
                 legend.innerHTML += `<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full" style="background:${col}"></div><span class="text-xs text-gray-300">${s.l}</span></div>`;
             });
-            
-            const pie = document.getElementById('pie-chart');
             pie.style.background = `conic-gradient(${grad.join(', ')})`;
             safeSetText('pie-center-text', `Total\n₹${total.toLocaleString()}`);
-
-            // Bar Chart
-            const barC = document.getElementById('bar-chart'); barC.innerHTML = '';
-            let inc=0, exp=0;
-            appState.budgetHistory[m].forEach(c => c.items.forEach(x => { if(c.id==='income') inc+=x.actual; else exp+=x.actual; }));
-            const max = Math.max(inc, exp) || 1;
-            
-            barC.innerHTML = `
-                <div class="chart-bar bg-green-500" style="height:${(inc/max)*100}px"><div class="chart-bar-label">In</div></div>
-                <div class="chart-bar bg-red-500" style="height:${(exp/max)*100}px"><div class="chart-bar-label">Out</div></div>
-            `;
         }
 
         function renderYearly() {
@@ -729,7 +732,6 @@
             safeSetText('defrag-date-display', d);
             document.getElementById('defrag-date-picker').value = d;
             document.getElementById('defrag-display-date').innerText = d;
-            
             const l = document.getElementById('defrag-list'); l.innerHTML = '';
             appState.defragHistory[d].forEach((it, i) => {
                 l.innerHTML += `<div class="bg-[#1A1A1A] p-3 rounded-xl flex gap-3 border border-[#333]"><input type="checkbox" class="checkbox-zen" ${it.done?'checked':''} onchange="window.toggleDefrag(${i})"><input class="bg-transparent w-full text-white outline-none ${it.done?'line-through opacity-50':''}" value="${it.text}" oninput="window.updateDefrag(${i},this.value)"></div>`;
@@ -739,7 +741,7 @@
         function renderMoral() {
             const l = document.getElementById('moral-list'); l.innerHTML = '';
             appState.moralCodes.forEach((c, i) => {
-                l.innerHTML += `<div class="bg-[#1A1A1A] p-3 rounded-xl flex gap-3 border border-[#333] mb-2"><input type="checkbox" class="checkbox-zen" ${c.checked?'checked':''} onchange="window.toggleMoral(${i})"><span class="flex-1 text-white text-sm ${c.checked?'line-through opacity-50':''}">${c.text}</span><button onclick="window.delMoral(${i})" class="text-red-400">x</button></div>`;
+                l.innerHTML += `<div class="bg-[#1A1A1A] p-3 rounded-xl flex gap-3 border border-[#333] mb-2"><input type="checkbox" class="checkbox-zen" ${c.checked?'checked':''} onchange="window.toggleMoral(${i})"><input class="bg-transparent w-full text-white outline-none ${c.checked?'opacity-50 line-through':''}" value="${c.text}" oninput="window.updateMoral(${i},this.value)"><button onclick="window.delMoral(${i})" class="text-red-400">x</button></div>`;
             });
         }
 
@@ -754,7 +756,7 @@
         }
 
         async function initSim() {
-            const res = await callGemini("Suggest ONE short controversial debate topic (e.g. 'Remote work is bad'). Just text.");
+            const res = await callGemini("Topic for short debate:");
             safeSetText('sim-topic', res || "Remote Work");
             document.getElementById('sim-step-0').classList.remove('hidden');
             document.getElementById('sim-active').classList.add('hidden');
@@ -765,7 +767,6 @@
             document.getElementById('sim-input').value='';
         }
 
-        // --- CORE ---
         async function callGemini(p) {
             if(!apiKey) return "No API Key";
             try {
@@ -782,24 +783,24 @@
         function loadLocal() {
             const s = localStorage.getItem('minto_ult_v2');
             if(s) appState = JSON.parse(s);
-            if(!appState.defragHistory) appState.defragHistory = {}; // Migration fix
-            if(!appState.moralCodes) appState.moralCodes = []; // Migration fix
-            
-            // Fix for Notepad Migration
-            if(!appState.notepad || !appState.notepad.notes) {
-                appState.notepad = { notes: [], folders: ['All', 'Personal', 'Work', 'Ideas'], activeFolder: 'All' };
-            }
-            
+            if(!appState.defragHistory) appState.defragHistory = {}; 
+            if(!appState.moralCodes) appState.moralCodes = []; 
+            if(!appState.notepad) appState.notepad = { notes: [], folders: ['All', 'Personal', 'Work', 'Ideas'], activeFolder: 'All' };
+            if(!appState.bills) appState.bills = [];
             refreshUI();
         }
+        function wipeDataView() {
+             appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], bills: [], simData: { P1:'', R:'', E:'', P2:'' } };
+             refreshUI();
+        }
         function refreshUI() {
-            // Only refresh active
             if(!document.getElementById('screen-BUDGET').classList.contains('hidden')) { renderBudget(); }
             if(!document.getElementById('screen-DEFRAG').classList.contains('hidden')) renderDefrag();
             if(!document.getElementById('screen-NOTEPAD').classList.contains('hidden')) renderNotepad();
             if(!document.getElementById('screen-MORAL').classList.contains('hidden')) renderMoral();
             if(!document.getElementById('screen-CALENDAR').classList.contains('hidden')) renderEvents();
-            calculateTotals(); // Update dashboard widget
+            if(!document.getElementById('screen-BILLS').classList.contains('hidden')) renderBills();
+            calculateTotals();
             refreshIcons();
         }
 
@@ -824,10 +825,7 @@
                             onSnapshot(userRef, (s) => {
                                 if(s.exists()) { 
                                     const cloudData = s.data();
-                                    // Smart Merge Logic to prevent overwrite of local if cloud is empty (Optional)
-                                    // Here we assume Cloud is truth if exists
                                     appState = { ...appState, ...cloudData };
-                                    // Re-verify structure after merge
                                     if(!Array.isArray(appState.notepad.notes)) appState.notepad.notes = [];
                                     refreshUI(); 
                                 }
