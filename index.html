@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Minto OS - Ultimate Fixed</title>
+    <title>Minto OS - Ultimate Stable</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <link rel="apple-touch-icon" href="639d7715983578b450da3fae_mintopng.png.png">
@@ -199,6 +199,7 @@
                     <div id="yearly-dashboard" class="hidden space-y-4"><div class="glass-panel p-4"><h3 class="text-sm font-medium text-white mb-3">Annual Velocity</h3><div id="yearly-stats-container" class="space-y-3"></div></div></div>
                 </div>
                 
+                <!-- Insights Modal -->
                 <div id="budget-insights-modal" class="hidden fixed inset-0 z-50 bg-[#080808] p-4 flex flex-col overflow-y-auto">
                     <div class="flex justify-between mb-6 border-b border-white/10 pb-2"><h3 class="text-[#D4F937] font-bold">Insights</h3><button onclick="window.closeInsights()" class="text-white">✕</button></div>
                     <div class="glass-panel p-4 mb-6 flex flex-col items-center">
@@ -256,6 +257,7 @@
             <div id="screen-CALIBRATION" class="screen-content hidden flex flex-col h-full items-center">
                 <div class="w-full flex items-center gap-2 mb-8 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
                 <h2 class="text-2xl font-light text-white mb-2">Breathe</h2>
+                <p class="text-xs text-gray-400 mb-8">Reset your nervous system</p>
                 <div class="breath-ring-container mb-12">
                     <svg class="breath-ring-svg" viewBox="0 0 260 260"><circle cx="130" cy="130" r="120" class="breath-ring-circle-bg"></circle><circle id="breath-progress" cx="130" cy="130" r="120" class="breath-ring-circle"></circle></svg>
                     <div class="absolute inset-0 flex items-center justify-center"><div id="breath-core" class="breath-inner-circle"><span id="breath-text" class="text-white text-sm font-medium tracking-widest opacity-80">Ready</span></div></div>
@@ -322,7 +324,11 @@
                 <div class="flex items-center gap-2 mb-4 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
                 <div class="glass-card p-4 mb-4">
                     <h2 class="text-lg text-white mb-4">Schedule</h2>
-                    <div class="space-y-3 mb-6"><input id="cal-title" class="w-full input-zen p-3 text-sm" placeholder="Meeting Title"><div class="flex gap-2"><input id="cal-date" type="date" class="flex-1 input-zen p-3 text-sm"><input id="cal-time" type="time" class="flex-1 input-zen p-3 text-sm"></div><button onclick="window.addEvent()" class="btn-primary w-full py-2 text-sm">Add Event</button></div>
+                    <div class="space-y-3 mb-6">
+                        <input id="cal-title" class="w-full input-zen p-3 text-sm" placeholder="Meeting Title">
+                        <div class="flex gap-2"><input id="cal-date" type="date" class="flex-1 input-zen p-3 text-sm"><input id="cal-time" type="time" class="flex-1 input-zen p-3 text-sm"></div>
+                        <button onclick="window.addEvent()" class="btn-primary w-full py-2 text-sm">Add Event</button>
+                    </div>
                     <div id="event-list" class="space-y-2"></div>
                 </div>
             </div>
@@ -357,6 +363,7 @@
         };
         const apiKey = "AIzaSyDRAqvQVccL8YSKjyNc8N3ih9YYmMtJ3Dc"; // Gemini Key
 
+        // --- TEMPLATE ---
         const budgetTemplate = [
             { id: 'income', title: 'Income', items: ['Salary', 'Freelance Income', 'Dividends', 'Gifts Received', 'Refunds/Reimbursements', 'Transfer From Savings', 'Tax', 'Other'] },
             { id: 'home', title: 'Home Expenses', items: ['Mortgage/Rent', 'Home/Rental Insurance', 'Electricity', 'Gas/Oil', 'Water/Sewer/Trash', 'Phone', 'Cable/Satellite', 'Internet', 'Furnishings/Appliances', 'Lawn/Garden', 'Maintenance/Supplies', 'Improvements', 'Other'] },
@@ -451,6 +458,10 @@
                 
                 appState.bills.push({ id:Date.now(), img: currentBillImage, amt, merch, note, date });
                 saveData(); renderBills(); window.closeBillEditor();
+            },
+            deleteBill: (id) => {
+                 appState.bills = appState.bills.filter(b => b.id !== id);
+                 saveData(); renderBills();
             },
             
             // --- NOTEPAD ---
@@ -598,10 +609,24 @@
                 const s=d.replace(/-/g,'')+(tm?`T${tm.replace(':','')}00`:'');
                 window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(t)}&dates=${s}/${s}`, '_blank');
             },
-            deleteEvent: (i) => { appState.events.splice(i,1); saveData(); renderEvents(); }
+            deleteEvent: (i) => { appState.events.splice(i,1); saveData(); renderEvents(); },
+            addToGCal: (i) => {
+                const e=appState.events[i];
+                const s=e.date.replace(/-/g,'')+(e.time?`T${e.time.replace(':','')}00`:'');
+                window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.title)}&dates=${s}/${s}`, '_blank');
+            },
+            addMoral: () => { const v=document.getElementById('moral-input').value; if(v){ appState.moralCodes.push({text:v,checked:false}); saveData(); renderMoral(); document.getElementById('moral-input').value=''; } },
+            delMoral: (i) => { appState.moralCodes.splice(i,1); saveData(); renderMoral(); },
+            toggleMoral: (i) => { appState.moralCodes[i].checked=!appState.moralCodes[i].checked; saveData(); renderMoral(); },
+            refineMoralCode: async () => {
+                const v=document.getElementById('moral-input').value;
+                if(!v) return alert("Type draft first");
+                const res=await callGemini(`Refine into stoic maxim: ${v}`);
+                document.getElementById('moral-input').value=res;
+            }
         });
 
-        // --- HELPERS & RENDERERS ---
+        // --- HELPERS ---
         function ensureDefrag(d) { if(!appState.defragHistory[d]) appState.defragHistory[d]=[{text:'',done:false},{text:'',done:false},{text:'',done:false}]; }
         function initMonth(m) { appState.budgetHistory[m] = budgetTemplate.map(c=>({ title:c.title, id:c.id, items:c.items.map(n=>({name:n,projected:0,actual:0})) })); }
         
@@ -610,24 +635,51 @@
             let total = 0;
             appState.bills.sort((a,b) => b.id - a.id).forEach(b => {
                 total += b.amt;
-                list.innerHTML += `<div class="glass-panel p-3 flex gap-3 items-center">
+                list.innerHTML += `<div class="glass-panel p-3 flex gap-3 items-center relative">
                     <div class="w-12 h-12 bg-cover bg-center rounded-lg flex-shrink-0 border border-[#333]" style="background-image: url(${b.img})"></div>
                     <div class="flex-1 min-w-0">
                         <div class="text-white text-sm font-medium truncate">${b.merch}</div>
                         <div class="text-xs text-gray-500">${b.date} • ${b.note}</div>
                     </div>
                     <div class="text-[var(--lime-accent)] text-sm font-bold">₹${b.amt}</div>
+                    <button onclick="window.deleteBill(${b.id})" class="text-red-400 absolute top-1 right-1 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>`;
             });
             safeSetText('bill-total', `Total: ₹${total.toLocaleString()}`);
+            lucide.createIcons();
+        }
+        window.deleteBill = (id) => {
+            appState.bills = appState.bills.filter(b => b.id !== id);
+            saveData(); renderBills();
+        };
+
+        function renderNotepad() {
+            const tabs = document.getElementById('note-folders');
+            tabs.innerHTML = appState.notepad.folders.map(f => 
+                `<button onclick="window.changeFolder('${f}')" class="folder-tab whitespace-nowrap px-4 py-2 rounded-full text-xs font-medium border border-[#333] ${appState.notepad.activeFolder === f ? 'bg-[var(--lime-accent)] text-black' : 'bg-[#222] text-gray-400'}">${f}</button>`
+            ).join('');
+            window.renderNotes();
         }
 
         function renderBudget() {
-            const list = document.getElementById('budget-list'); list.innerHTML = '';
+            const list = document.getElementById('budget-list');
+            const dash = document.getElementById('yearly-dashboard');
+            const picker = document.getElementById('budget-month-selector');
+            
+            if(appState.budgetViewMode === 'yearly') {
+                list.classList.add('hidden'); dash.classList.remove('hidden'); picker.disabled=true;
+                renderYearly();
+                return;
+            }
+            
+            list.classList.remove('hidden'); dash.classList.add('hidden'); picker.disabled=false;
+            list.innerHTML = '';
+            
             const m = appState.currentMonth;
-            document.getElementById('month-display-text').innerText = m;
-            document.getElementById('budget-month-selector').value = m;
+            safeSetText('month-display-text', m);
+            const pEl = document.getElementById('budget-month-selector'); if(pEl) pEl.value = m;
             if(!appState.budgetHistory[m]) initMonth(m);
+            
             appState.budgetHistory[m].forEach((cat, idx) => {
                 const sub = cat.items.reduce((s,i)=>s+i.actual,0);
                 const el = document.createElement('div');
@@ -660,31 +712,47 @@
         function calculateTotals() {
             let inc=0, exp=0;
             const m = appState.currentMonth;
-            if(appState.budgetViewMode==='yearly') { 
-                const y = m.split('-')[0];
-                Object.keys(appState.budgetHistory).filter(k=>k.startsWith(y)).forEach(k => {
-                    appState.budgetHistory[k].forEach(c => c.items.forEach(i => { if(c.id==='income') inc+=i.actual; else exp+=i.actual; }));
-                });
-            } 
+            if(appState.budgetViewMode==='yearly') { /* Aggregation */ } 
             else if(appState.budgetHistory[m]) {
                 appState.budgetHistory[m].forEach(c => c.items.forEach(i => { if(c.id==='income') inc+=i.actual; else exp+=i.actual; }));
             }
             safeSetText('summary-income', `₹${inc.toLocaleString()}`);
             safeSetText('summary-expense', `₹${exp.toLocaleString()}`);
             safeSetText('summary-net', `₹${(inc-exp).toLocaleString()}`);
+            safeSetText('dash-net-worth', `₹${(inc-exp).toLocaleString()}`);
         }
 
         function drawCharts() {
             const m = appState.currentMonth;
-            // Handle empty data
             if(!appState.budgetHistory[m]) return;
-            
             const data = appState.budgetHistory[m].filter(c => c.id !== 'income' && c.items.reduce((s,i)=>s+i.actual,0) > 0);
             
             let total = 0; 
             const segments = data.map(c => { const v=c.items.reduce((s,i)=>s+i.actual,0); total+=v; return {l:c.title, v}; });
             
-            // Charts Logic
+            const pie = document.getElementById('pie-chart');
+            const legend = document.getElementById('pie-legend'); legend.innerHTML='';
+            
+            if(total === 0) {
+                 pie.style.background = '#222';
+                 safeSetText('pie-center-text', 'No Data');
+            } else {
+                let grad = []; let start=0; 
+                // High Contrast Palette
+                const colors = ['#D4F937', '#2563EB', '#EC4899', '#8B5CF6', '#F97316', '#14B8A6'];
+                
+                segments.forEach((s, i) => {
+                    const deg = (s.v/total)*360;
+                    const col = colors[i%colors.length];
+                    grad.push(`${col} ${start}deg ${start+deg}deg`);
+                    start += deg;
+                    legend.innerHTML += `<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full" style="background:${col}"></div><span class="text-xs text-gray-300">${s.l}</span></div>`;
+                });
+                pie.style.background = `conic-gradient(${grad.join(', ')})`;
+                safeSetText('pie-center-text', `Total\n₹${total.toLocaleString()}`);
+            }
+
+            // Bar Chart
             let inc=0, exp=0;
             appState.budgetHistory[m].forEach(c => c.items.forEach(x => { if(c.id==='income') inc+=x.actual; else exp+=x.actual; }));
             const max = Math.max(inc, exp) || 1;
@@ -692,29 +760,6 @@
                 <div class="chart-bar bg-green-500" style="height:${(inc/max)*100}px"><div class="chart-bar-label">In</div></div>
                 <div class="chart-bar bg-red-500" style="height:${(exp/max)*100}px"><div class="chart-bar-label">Out</div></div>
             `;
-            
-            const legend = document.getElementById('pie-legend'); legend.innerHTML='';
-            const pie = document.getElementById('pie-chart');
-            
-            if(total === 0) {
-                 pie.style.background = '#222';
-                 safeSetText('pie-center-text', 'No Data');
-                 return;
-            }
-
-            let grad = []; let start=0; 
-            // High Contrast Palette
-            const colors = ['#D4F937', '#2563EB', '#EC4899', '#8B5CF6', '#F97316', '#14B8A6'];
-            
-            segments.forEach((s, i) => {
-                const deg = (s.v/total)*360;
-                const col = colors[i%colors.length];
-                grad.push(`${col} ${start}deg ${start+deg}deg`);
-                start += deg;
-                legend.innerHTML += `<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full" style="background:${col}"></div><span class="text-xs text-gray-300">${s.l}</span></div>`;
-            });
-            pie.style.background = `conic-gradient(${grad.join(', ')})`;
-            safeSetText('pie-center-text', `Total\n₹${total.toLocaleString()}`);
         }
 
         function renderYearly() {
@@ -756,7 +801,7 @@
         }
 
         async function initSim() {
-            const res = await callGemini("Topic for short debate:");
+            const res = await callGemini("Suggest ONE short controversial debate topic (e.g. 'Remote work is bad'). Just text.");
             safeSetText('sim-topic', res || "Remote Work");
             document.getElementById('sim-step-0').classList.remove('hidden');
             document.getElementById('sim-active').classList.add('hidden');
@@ -767,6 +812,7 @@
             document.getElementById('sim-input').value='';
         }
 
+        // --- CORE ---
         async function callGemini(p) {
             if(!apiKey) return "No API Key";
             try {
