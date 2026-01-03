@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Minto OS - Ultimate Stable</title>
+    <title>Minto OS - Ultimate Fixed</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <link rel="apple-touch-icon" href="639d7715983578b450da3fae_mintopng.png.png">
@@ -259,13 +259,21 @@
                 <h2 class="text-2xl font-light text-white mb-2">Breathe</h2>
                 <p class="text-xs text-gray-400 mb-8">Reset your nervous system</p>
                 <div class="breath-ring-container mb-12">
-                    <svg class="breath-ring-svg" viewBox="0 0 260 260"><circle cx="130" cy="130" r="120" class="breath-ring-circle-bg"></circle><circle id="breath-progress" cx="130" cy="130" r="120" class="breath-ring-circle"></circle></svg>
-                    <div class="absolute inset-0 flex items-center justify-center"><div id="breath-core" class="breath-inner-circle"><span id="breath-text" class="text-white text-sm font-medium tracking-widest opacity-80">Ready</span></div></div>
+                    <svg class="breath-ring-svg" viewBox="0 0 260 260">
+                        <circle cx="130" cy="130" r="120" class="breath-ring-circle-bg"></circle>
+                        <circle id="breath-progress" cx="130" cy="130" r="120" class="breath-ring-circle"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div id="breath-core" class="breath-inner-circle"><span id="breath-text" class="text-white text-sm font-medium tracking-widest opacity-80">Ready</span></div>
+                    </div>
                 </div>
-                <div class="w-full max-w-xs flex justify-between gap-2">
-                    <button onclick="window.startBreathe('Anxiety')" class="breath-state-btn flex-1" id="btn-anxiety">Anxiety</button>
-                    <button onclick="window.startBreathe('Anger')" class="breath-state-btn flex-1" id="btn-anger">Anger</button>
-                    <button onclick="window.startBreathe('Stress')" class="breath-state-btn flex-1" id="btn-stress">Stress</button>
+                <div class="w-full max-w-xs">
+                    <p class="text-center text-xs text-gray-500 mb-4">Choose your state:</p>
+                    <div class="flex justify-between gap-2">
+                        <button onclick="window.startBreathe('Anxiety')" class="breath-state-btn flex-1" id="btn-anxiety">Anxiety</button>
+                        <button onclick="window.startBreathe('Anger')" class="breath-state-btn flex-1" id="btn-anger">Anger</button>
+                        <button onclick="window.startBreathe('Stress')" class="breath-state-btn flex-1" id="btn-stress">Stress</button>
+                    </div>
                 </div>
                 <button onclick="window.stopBreathe()" class="mt-6 text-xs text-red-400">Stop Session</button>
             </div>
@@ -379,7 +387,7 @@
         ];
 
         let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], bills: [], simData: { P1:'', R:'', E:'', P2:'' } };
-        let app, db, auth, userRef, breatheInterval, currentNoteId = null, currentBillImage = null;
+        let app, db, auth, userRef, breatheInterval, currentNoteId = null, defragDebounce, budgetDebounce;
 
         // UTILS
         function safeSetText(id, val) { const el=document.getElementById(id); if(el) el.innerText=val; }
@@ -417,9 +425,14 @@
                 const m = appState.currentMonth;
                 if(!appState.budgetHistory[m]) initMonth(m);
                 appState.budgetHistory[m][c].items[i][f] = parseFloat(v) || 0;
-                saveData(); calculateTotals(); 
+                
+                // DEBOUNCE UPDATE
+                calculateTotals(); 
                 const sub = appState.budgetHistory[m][c].items.reduce((s,x)=>s+x.actual,0);
                 safeSetText(`sub-${c}`, `₹${sub.toLocaleString()}`);
+                
+                clearTimeout(budgetDebounce);
+                budgetDebounce = setTimeout(saveData, 1500); // 1.5s delay before cloud save
             },
             printBudget: () => window.print(),
             openFinanceChat: () => document.getElementById('finance-chat-modal').classList.remove('hidden'),
@@ -557,7 +570,15 @@
             // --- DEFRAG & SIM & BREATHE & CAL (Standard) ---
             changeDefragDate: (v) => { if(v) { document.getElementById('defrag-display-date').innerText=v; ensureDefrag(v); renderDefrag(v); } },
             toggleDefrag: (i) => { const d=document.getElementById('defrag-date-picker').value; ensureDefrag(d); appState.defragHistory[d][i].done=!appState.defragHistory[d][i].done; saveData(); renderDefrag(d); },
-            updateDefrag: (i,v) => { const d=document.getElementById('defrag-date-picker').value; ensureDefrag(d); appState.defragHistory[d][i].text=v; saveData(); },
+            updateDefrag: (i,v) => { 
+                const d=document.getElementById('defrag-date-picker').value; 
+                ensureDefrag(d); 
+                appState.defragHistory[d][i].text=v; 
+                
+                // Debounce Save for smooth typing
+                clearTimeout(defragDebounce);
+                defragDebounce = setTimeout(saveData, 1000);
+            },
             resetDefrag: () => { const d=document.getElementById('defrag-date-picker').value; appState.defragHistory[d]=[{text:'',done:false},{text:'',done:false},{text:'',done:false}]; saveData(); renderDefrag(d); },
             optimizeDefrag: async () => {
                 const d=document.getElementById('defrag-date-picker').value; ensureDefrag(d);
@@ -662,6 +683,11 @@
         }
 
         function renderBudget() {
+            // FIX: Guard against re-render while user is typing in budget
+            const active = document.activeElement;
+            const isEditingBudget = active && active.tagName === 'INPUT' && active.closest('#budget-list');
+            if(isEditingBudget) return; 
+
             const list = document.getElementById('budget-list');
             const dash = document.getElementById('yearly-dashboard');
             const picker = document.getElementById('budget-month-selector');
@@ -696,8 +722,8 @@
                             const col = diff >= 0 ? 'text-green-500' : 'text-red-500';
                             return `<div class="grid grid-cols-12 gap-2 items-center">
                                 <div class="col-span-4 text-xs text-gray-300 truncate">${it.name}</div>
-                                <input type="number" class="col-span-3 bg-[#222] rounded p-1 text-center text-white text-xs" value="${it.projected||''}" oninput="window.updateBudget(${idx},${i},'projected',this.value)">
-                                <input type="number" class="col-span-3 bg-[#222] rounded p-1 text-center text-white text-xs" value="${it.actual||''}" oninput="window.updateBudget(${idx},${i},'actual',this.value)">
+                                <input type="number" class="col-span-3 bg-[#222] rounded p-1 text-center text-white text-xs budget-input" value="${it.projected||''}" oninput="window.updateBudget(${idx},${i},'projected',this.value)">
+                                <input type="number" class="col-span-3 bg-[#222] rounded p-1 text-center text-white text-xs budget-input" value="${it.actual||''}" oninput="window.updateBudget(${idx},${i},'actual',this.value)">
                                 <div class="col-span-2 text-[10px] text-right ${col}">₹${diff}</div>
                             </div>`;
                         }).join('')}
