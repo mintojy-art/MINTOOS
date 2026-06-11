@@ -11,6 +11,31 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Minto OS">
     <link rel="apple-touch-icon" href="639d7715983578b450da3fae_mintopng.png.png">
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "540f659e-8a8c-4b38-9ed2-1ed956b53e46",
+          serviceWorkerPath: "/MINTOOS/OneSignalSDKWorker.js",
+          serviceWorkerParam: { scope: "/MINTOOS/" },
+          notifyButton: { enable: false },
+          allowLocalhostAsSecureOrigin: true,
+        });
+
+        // Show our custom banner if not yet subscribed
+        const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
+        if (!isSubscribed && !localStorage.getItem('os_asked')) {
+          setTimeout(() => {
+            const banner = document.getElementById('notif-banner');
+            if (banner) banner.classList.remove('hidden');
+          }, 3000);
+        }
+
+        // Update Signal Agent tags so OneSignal can personalise send logic
+        OneSignal.User.addTag("app", "minto-os");
+      });
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest" defer></script>
     <style>
@@ -157,8 +182,17 @@
             <button id="auth-btn" onclick="window.handleAuth()" class="text-xs bg-white/10 px-3 py-1.5 rounded-full text-white border border-white/10">Login</button>
         </header>
 
-        <!-- OneSignal notification banner placeholder -->
-        <div id="notif-banner" class="hidden"></div>
+        <!-- OneSignal notification opt-in banner -->
+        <div id="notif-banner" class="hidden mb-3 px-4 py-3 rounded-2xl border border-[#D4F937]/30 bg-[#D4F937]/5 flex items-center justify-between gap-3 no-print">
+            <div class="flex items-center gap-2">
+                <span class="text-lg">🔔</span>
+                <span class="text-xs text-gray-300">Get daily signal reminders at 8:30 AM &amp; 9:30 PM</span>
+            </div>
+            <div class="flex gap-2 flex-shrink-0">
+                <button onclick="window.enableNotifications()" class="text-xs bg-[#D4F937] text-black font-semibold px-3 py-1.5 rounded-full">Enable</button>
+                <button onclick="window.dismissNotifBanner()" class="text-xs text-gray-500 px-2">✕</button>
+            </div>
+        </div>
 
         <main class="flex-1 flex flex-col relative">
 
@@ -1141,9 +1175,26 @@
             refreshIcons();
         }
 
-        // --- NOTIFICATIONS (OneSignal handles scheduling — see OneSignalSDKWorker.js) ---
+        // --- NOTIFICATIONS (OneSignal) ---
+        window.enableNotifications = async () => {
+            document.getElementById('notif-banner').classList.add('hidden');
+            localStorage.setItem('os_asked', '1');
+            if (window.OneSignal) {
+                await OneSignal.Slidedown.promptPush();
+            }
+        };
+        window.dismissNotifBanner = () => {
+            document.getElementById('notif-banner').classList.add('hidden');
+            localStorage.setItem('os_asked', '1');
+        };
+
         function setupNotifications() {
-            // Placeholder — OneSignal SDK initialised via script tag once App ID is configured
+            // Handle deep-link from notification tap: ?screen=SIGNAL
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetScreen = urlParams.get('screen');
+            if (targetScreen) {
+                setTimeout(() => window.showScreen(targetScreen), 2100);
+            }
         }
 
         window.onload = function() {
