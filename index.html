@@ -389,7 +389,7 @@
                     <h3 id="sim-stage" class="text-[#D4F937] font-bold">POINT</h3>
                     <textarea id="sim-input" class="w-full h-32 input-zen p-3 text-sm resize-none"></textarea>
                     <div id="sim-ai-feedback" class="hidden glass-panel p-3 text-xs text-gray-300 border border-[#D4F937]/30"></div>
-                    <div class="flex gap-2"><button id="btn-sim-ai" onclick="window.runSimDiagnostics()" class="hidden btn-glass flex-1 py-3">AI Grade</button><button onclick="window.nextSim()" class="btn-primary flex-1 py-3">Next</button></div>
+                    <div class="flex gap-2"><button id="btn-sim-ai" onclick="window.runSimDiagnostics()" class="hidden flex-1 py-3 border border-[#D4F937] text-[#D4F937] rounded-full text-sm font-medium">⚡ AI Grade</button><button onclick="window.nextSim()" class="btn-primary flex-1 py-3">Next →</button></div>
                 </div>
             </div>
 
@@ -449,7 +449,6 @@
                 <div class="glass-card p-6 mb-4"><h2 class="text-xl text-white">Prime Directives</h2></div>
                 <div id="moral-list" class="space-y-2 flex-1"></div>
                 <div class="glass-panel p-3 mt-4 flex gap-2"><input id="moral-input" class="w-full bg-transparent text-white outline-none text-sm" placeholder="Add rule..."><button onclick="window.addMoral()" class="text-[#D4F937]"><i data-lucide="plus" class="w-5 h-5"></i></button></div>
-                <div class="flex justify-end mt-2"><button onclick="window.refineMoralCode()" class="text-xs text-[#D4F937] flex items-center gap-1 hover:underline"><i data-lucide="sparkles" class="w-3 h-3"></i> AI Refine</button></div>
             </div>
 
             <!-- SIGNAL AGENT -->
@@ -559,7 +558,7 @@
             { id: 'misc', title: 'Miscellaneous', items: ['Bank Fees', 'Postage', 'Microgreens', 'Other'] }
         ];
 
-        let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], bills: [], simData: { P1:'', R:'', E:'', P2:'' }, signalAgent: { signals:['','',''], done:[false,false,false], streak:[false,false,false,false,false,false,false], history:[], date:'' } };
+        let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], bills: [], simData: { P1:'', R:'', E:'', P2:'' }, signalAgent: { signals:['','',''], done:[false,false,false], streak:[false,false,false,false,false,false,false], history:[], date:'', lastStreakDate:'' } };
         let app, db, auth, userRef, breatheInterval, currentNoteId = null, defragDebounce, budgetDebounce;
 
         // UTILS
@@ -734,13 +733,6 @@
             delMoral: (i) => { appState.moralCodes.splice(i,1); saveData(); renderMoral(); },
             toggleMoral: (i) => { appState.moralCodes[i].checked=!appState.moralCodes[i].checked; saveData(); renderMoral(); },
             updateMoral: (i, v) => { appState.moralCodes[i].text=v; saveData(); },
-            refineMoralCode: async () => {
-                const v=document.getElementById('moral-input').value;
-                if(!v) return alert("Type draft first");
-                const res=await callGemini(`Refine into stoic maxim: ${v}`);
-                document.getElementById('moral-input').value=res;
-            },
-
             // --- DEFRAG & SIM & BREATHE & CAL (Standard) ---
             changeDefragDate: (v) => { if(v) { document.getElementById('defrag-display-date').innerText=v; ensureDefrag(v); renderDefrag(v); } },
             toggleDefrag: (i) => { const d=document.getElementById('defrag-date-picker').value; ensureDefrag(d); appState.defragHistory[d][i].done=!appState.defragHistory[d][i].done; saveData(); renderDefrag(d); },
@@ -813,13 +805,6 @@
             addMoral: () => { const v=document.getElementById('moral-input').value; if(v){ appState.moralCodes.push({text:v,checked:false}); saveData(); renderMoral(); document.getElementById('moral-input').value=''; } },
             delMoral: (i) => { appState.moralCodes.splice(i,1); saveData(); renderMoral(); },
             toggleMoral: (i) => { appState.moralCodes[i].checked=!appState.moralCodes[i].checked; saveData(); renderMoral(); },
-            refineMoralCode: async () => {
-                const v=document.getElementById('moral-input').value;
-                if(!v) return alert("Type draft first");
-                const res=await callGemini(`Refine into stoic maxim: ${v}`);
-                document.getElementById('moral-input').value=res;
-            },
-
             // --- SIGNAL AGENT ---
             saAutoResize: (el) => {
                 el.style.height = 'auto';
@@ -874,16 +859,28 @@
                 const reply = await callGemini(`You are Signal Agent. End of day review.\nSignals:\n${ctx}\nCompleted: ${done}/3\n\nGive a powerful 3-4 sentence end-of-day review. Acknowledge wins, call out incomplete with honesty (not harshness), and set the mindset for tomorrow.`);
                 saRemoveTyping();
                 saAddMsg('agent', reply || (done===3 ? "Full signal day. You executed. Log this win." : `${done}/3 signals done. The gap is data, not failure. Reset tomorrow with clarity.`));
-                if (done === 3) { sa.streak[6] = true; saUpdateStreak(); saveData(); }
+                if (done === 3) { saEnsureStreakRotated(); sa.streak[6] = true; saUpdateStreak(); saveData(); }
                 document.getElementById('sa-send-btn').disabled = false;
             }
         });
 
         // --- SIGNAL AGENT HELPERS ---
+        function saEnsureStreakRotated() {
+            const sa = appState.signalAgent;
+            const today = new Date().toDateString();
+            if (!sa.lastStreakDate) { sa.lastStreakDate = today; return; }
+            if (sa.lastStreakDate === today) return;
+            const daysPassed = Math.round((new Date(today) - new Date(sa.lastStreakDate)) / 86400000);
+            const shift = Math.min(daysPassed, 7);
+            for (let i = 0; i < shift; i++) { sa.streak.shift(); sa.streak.push(false); }
+            sa.lastStreakDate = today;
+        }
+
         function initSignalAgent() {
             const sa = appState.signalAgent;
             const today = new Date().toDateString();
-            if (sa.date !== today) { sa.signals=['','','']; sa.done=[false,false,false]; sa.history=[]; sa.date=today; }
+            saEnsureStreakRotated();
+            if (sa.date !== today) { sa.signals=['','','']; sa.done=[false,false,false]; sa.history=[]; sa.date=today; saveData(); }
             document.getElementById('sa-today-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
             for (let i=0;i<3;i++) {
                 const el=document.getElementById('sa-sig-'+i);
@@ -1125,11 +1122,16 @@
         }
 
         async function initSim() {
-            const res = await callGemini("Suggest ONE short controversial debate topic (e.g. 'Remote work is bad'). Just text.");
-            safeSetText('sim-topic', res || "Remote Work");
-            document.getElementById('sim-step-0').classList.remove('hidden');
+            safeSetText('sim-topic', 'Loading topic...');
+            document.getElementById('sim-step-0').classList.add('hidden');
             document.getElementById('sim-active').classList.add('hidden');
-            window.simIdx=0;
+            document.getElementById('sim-ai-feedback').classList.add('hidden');
+            document.getElementById('btn-sim-ai').classList.add('hidden');
+            window.simIdx = 0;
+            appState.simData = { P1:'', R:'', E:'', P2:'' };
+            const res = await callGemini("Suggest ONE short controversial debate topic (e.g. 'Remote work is bad'). Reply with just the topic text, nothing else.");
+            safeSetText('sim-topic', (res && res !== 'Error') ? res.trim() : "Social media does more harm than good");
+            document.getElementById('sim-step-0').classList.remove('hidden');
         }
         function renderSimStep() {
             safeSetText('sim-stage', ["POINT","REASON","EXAMPLE","POINT"][window.simIdx]);
@@ -1140,7 +1142,7 @@
         async function callGemini(p) {
             if(!apiKey) return "No API Key";
             try {
-                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({contents: [{parts: [{text: p}]}]})});
+                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({contents: [{parts: [{text: p}]}]})});
                 const d = await r.json();
                 return d.candidates[0].content.parts[0].text;
             } catch(e) { return "Error"; }
@@ -1157,7 +1159,8 @@
             if(!appState.moralCodes) appState.moralCodes = []; 
             if(!appState.notepad) appState.notepad = { notes: [], folders: ['All', 'Personal', 'Work', 'Ideas'], activeFolder: 'All' };
             if(!appState.bills) appState.bills = [];
-            if(!appState.signalAgent) appState.signalAgent = { signals:['','',''], done:[false,false,false], streak:[false,false,false,false,false,false,false], history:[], date:'' };
+            if(!appState.signalAgent) appState.signalAgent = { signals:['','',''], done:[false,false,false], streak:[false,false,false,false,false,false,false], history:[], date:'', lastStreakDate:'' };
+            if(!appState.signalAgent.lastStreakDate) appState.signalAgent.lastStreakDate = '';
             refreshUI();
         }
         function wipeDataView() {
