@@ -7,6 +7,9 @@
     <title>Minto OS - Ultimate Fixed</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Minto OS">
     <link rel="apple-touch-icon" href="639d7715983578b450da3fae_mintopng.png.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest" defer></script>
@@ -71,6 +74,64 @@
         .chart-bar-label { position: absolute; bottom: -24px; left: 0; right: 0; text-align: center; font-size: 10px; color: #888; }
 
         @media print { body * { visibility: hidden; } #screen-BUDGET, #screen-BUDGET * { visibility: visible; } #screen-BUDGET { position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; } .no-print { display: none !important; } .glass-card, .glass-panel { border: 1px solid #ccc; box-shadow: none; background: white; color: black; } input { color: black; border-bottom: 1px solid #ddd; } .text-white { color: black !important; } .text-gray-400 { color: #555 !important; } }
+
+        /* Signal Agent */
+        .sa-date-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding: 10px 14px; background: #1A1A1A; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
+        .sa-section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: #555; margin-bottom: 10px; }
+        .signals-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.25rem; }
+        .signal-card { background: #121212; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px 16px; transition: border-color 0.15s; }
+        .signal-card.done { border-color: #1D9E75; border-left: 3px solid #1D9E75; }
+        .signal-card.active { border-color: rgba(255,255,255,0.2); }
+        .signal-top { display: flex; align-items: flex-start; gap: 12px; }
+        .signal-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; margin-top: 1px; }
+        .signal-num.s1 { background: rgba(212,249,55,0.15); color: #D4F937; }
+        .signal-num.s2 { background: rgba(83,74,183,0.2); color: #9B95F5; }
+        .signal-num.s3 { background: rgba(249,115,22,0.15); color: #FB923C; }
+        .signal-card.done .signal-num { background: rgba(29,158,117,0.2); color: #1D9E75; }
+        .signal-content { flex: 1; }
+        .signal-input { width: 100%; font-size: 15px; font-weight: 500; color: #fff; background: transparent; border: none; outline: none; font-family: 'Inter', sans-serif; resize: none; min-height: 22px; line-height: 1.4; }
+        .signal-input::placeholder { color: #444; font-weight: 400; }
+        .signal-sub { font-size: 13px; color: #888; margin-top: 6px; display: none; }
+        .signal-card.active .signal-sub { display: block; }
+        .signal-check { margin-left: auto; flex-shrink: 0; }
+        .sa-check-btn { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.2); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; color: #555; font-size: 14px; }
+        .sa-check-btn:hover { border-color: #1D9E75; color: #1D9E75; }
+        .signal-card.done .sa-check-btn { background: #1D9E75; border-color: #1D9E75; color: white; }
+        .signal-status-tag { font-size: 11px; margin-top: 8px; display: none; color: #1D9E75; font-weight: 500; }
+        .signal-card.done .signal-status-tag { display: inline-block; }
+        .sa-score-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+        .sa-score-card { background: #1A1A1A; border-radius: 12px; padding: 12px 14px; text-align: center; border: 1px solid rgba(255,255,255,0.06); }
+        .sa-score-val { font-size: 24px; font-weight: 500; color: #fff; }
+        .sa-score-lbl { font-size: 12px; color: #888; margin-top: 2px; }
+        .sa-streak-row { display: flex; gap: 6px; align-items: center; margin-bottom: 1.25rem; }
+        .sa-streak-dot { width: 8px; height: 8px; border-radius: 50%; background: #1A1A1A; border: 1px solid rgba(255,255,255,0.1); }
+        .sa-streak-dot.active { background: #1D9E75; border-color: #1D9E75; }
+        .sa-streak-label { font-size: 12px; color: #888; margin-left: 4px; }
+        .sa-noise-banner { background: rgba(239,68,68,0.1); border-radius: 12px; border: 1px solid rgba(239,68,68,0.3); padding: 10px 14px; font-size: 13px; color: #F87171; display: none; margin-bottom: 1rem; }
+        .sa-noise-banner.visible { display: flex; align-items: center; gap: 8px; }
+        .sa-chat-messages { background: #111; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); padding: 14px; min-height: 80px; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+        .sa-msg { display: flex; gap: 8px; align-items: flex-start; }
+        .sa-msg-avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; flex-shrink: 0; margin-top: 1px; }
+        .sa-msg.agent .sa-msg-avatar { background: rgba(83,74,183,0.3); color: #9B95F5; }
+        .sa-msg.user .sa-msg-avatar { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #888; }
+        .sa-msg-bubble { font-size: 14px; line-height: 1.55; color: #ddd; flex: 1; }
+        .sa-msg-time { font-size: 11px; color: #555; margin-top: 2px; }
+        .sa-chat-input-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+        .sa-chat-input-row input { flex: 1; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 9px 12px; background: #1A1A1A; color: #fff; font-family: 'Inter', sans-serif; outline: none; }
+        .sa-chat-input-row input:focus { border-color: #9B95F5; }
+        .sa-chat-input-row button { padding: 9px 16px; background: #3C3489; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s; }
+        .sa-chat-input-row button:hover { background: #534AB7; }
+        .sa-chat-input-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .sa-eod-btn-row { display: flex; gap: 10px; }
+        .sa-eod-btn { flex: 1; padding: 11px; background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; font-size: 13px; font-weight: 500; color: #fff; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+        .sa-eod-btn:hover { background: #1A1A1A; }
+        .sa-eod-btn.primary { background: #3C3489; color: white; border-color: #3C3489; }
+        .sa-eod-btn.primary:hover { background: #534AB7; }
+        .sa-typing { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+        .sa-typing span { width: 6px; height: 6px; border-radius: 50%; background: #555; animation: sa-blink 1.2s infinite; }
+        .sa-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .sa-typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes sa-blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
     </style>
 </head>
 <body class="min-h-screen relative overflow-x-hidden">
@@ -95,6 +156,18 @@
             </div>
             <button id="auth-btn" onclick="window.handleAuth()" class="text-xs bg-white/10 px-3 py-1.5 rounded-full text-white border border-white/10">Login</button>
         </header>
+
+        <!-- Notification permission banner (shown once) -->
+        <div id="notif-banner" class="hidden mb-3 px-4 py-3 rounded-2xl border border-[#D4F937]/30 bg-[#D4F937]/5 flex items-center justify-between gap-3 no-print">
+            <div class="flex items-center gap-2">
+                <span class="text-lg">🔔</span>
+                <span class="text-xs text-gray-300">Enable notifications for daily signal reminders</span>
+            </div>
+            <div class="flex gap-2 flex-shrink-0">
+                <button onclick="window.requestNotifPermission()" class="text-xs bg-[#D4F937] text-black font-semibold px-3 py-1.5 rounded-full">Allow</button>
+                <button onclick="window.dismissNotifBanner()" class="text-xs text-gray-500 px-2">✕</button>
+            </div>
+        </div>
 
         <main class="flex-1 flex flex-col relative">
 
@@ -144,6 +217,10 @@
                     </button>
                     <button onclick="window.showScreen('MORAL')" class="col-span-2 glass-card p-4 flex justify-between items-center text-left hover:bg-white/5">
                         <div class="flex items-center gap-3"><div class="w-10 h-10 bg-[var(--lime-accent)] rounded-full flex items-center justify-center text-black"><i data-lucide="shield" class="w-5 h-5"></i></div><div><h3 class="text-sm font-medium text-white">Prime Directives</h3><p class="text-[10px] text-gray-400">Moral Code</p></div></div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
+                    </button>
+                    <button onclick="window.showScreen('SIGNAL')" class="col-span-2 glass-card p-4 flex justify-between items-center text-left hover:bg-white/5">
+                        <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full flex items-center justify-center text-black" style="background:#D4F937"><i data-lucide="zap" class="w-5 h-5"></i></div><div><h3 class="text-sm font-medium text-white">Signal Agent</h3><p class="text-[10px] text-gray-400">Three signals. One day.</p></div></div>
                         <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600"></i>
                     </button>
                 </div>
@@ -350,6 +427,77 @@
                 <div class="flex justify-end mt-2"><button onclick="window.refineMoralCode()" class="text-xs text-[#D4F937] flex items-center gap-1 hover:underline"><i data-lucide="sparkles" class="w-3 h-3"></i> AI Refine</button></div>
             </div>
 
+            <!-- SIGNAL AGENT -->
+            <div id="screen-SIGNAL" class="screen-content hidden flex flex-col h-full overflow-y-auto pb-4">
+                <div class="flex items-center gap-2 mb-4 cursor-pointer opacity-70" onclick="window.showScreen('DASHBOARD')"><i data-lucide="arrow-left" class="w-4 h-4 text-white"></i><span class="text-sm text-white">Back</span></div>
+                <div class="flex justify-between items-center mb-1">
+                    <div>
+                        <h2 class="text-xl font-light text-white">Signal Agent</h2>
+                        <p class="text-xs text-gray-500 mt-0.5">Three signals. One day. Zero noise.</p>
+                    </div>
+                    <strong id="sa-completion-status" class="text-xs text-[#D4F937]">0 of 3 complete</strong>
+                </div>
+                <div class="sa-date-bar mt-3">
+                    <span id="sa-today-date" class="text-xs text-gray-400"></span>
+                </div>
+                <div class="sa-section-label">Today's three signals</div>
+                <div class="signals-grid">
+                    <div class="signal-card" id="sa-card-0">
+                        <div class="signal-top">
+                            <div class="signal-num s1">S1</div>
+                            <div class="signal-content">
+                                <textarea class="signal-input" id="sa-sig-0" placeholder="What is signal #1 today? (highest leverage action)" rows="1" oninput="window.saAutoResize(this)"></textarea>
+                                <div class="signal-sub">Lock in your #1 priority for today.</div>
+                            </div>
+                            <div class="signal-check"><button class="sa-check-btn" onclick="window.saToggleDone(0)">✓</button></div>
+                        </div>
+                        <div class="signal-status-tag">✓ Done</div>
+                    </div>
+                    <div class="signal-card" id="sa-card-1">
+                        <div class="signal-top">
+                            <div class="signal-num s2">S2</div>
+                            <div class="signal-content">
+                                <textarea class="signal-input" id="sa-sig-1" placeholder="Signal #2 — what moves the needle next?" rows="1" oninput="window.saAutoResize(this)"></textarea>
+                                <div class="signal-sub">Your second most important action.</div>
+                            </div>
+                            <div class="signal-check"><button class="sa-check-btn" onclick="window.saToggleDone(1)">✓</button></div>
+                        </div>
+                        <div class="signal-status-tag">✓ Done</div>
+                    </div>
+                    <div class="signal-card" id="sa-card-2">
+                        <div class="signal-top">
+                            <div class="signal-num s3">S3</div>
+                            <div class="signal-content">
+                                <textarea class="signal-input" id="sa-sig-2" placeholder="Signal #3 — the third thing that actually matters" rows="1" oninput="window.saAutoResize(this)"></textarea>
+                                <div class="signal-sub">Round out your focus for today.</div>
+                            </div>
+                            <div class="signal-check"><button class="sa-check-btn" onclick="window.saToggleDone(2)">✓</button></div>
+                        </div>
+                        <div class="signal-status-tag">✓ Done</div>
+                    </div>
+                </div>
+                <div class="sa-score-row">
+                    <div class="sa-score-card"><div class="sa-score-val" id="sa-score-complete">0</div><div class="sa-score-lbl">Done today</div></div>
+                    <div class="sa-score-card"><div class="sa-score-val" id="sa-score-streak">0</div><div class="sa-score-lbl">Day streak</div></div>
+                    <div class="sa-score-card"><div class="sa-score-val" id="sa-score-rate">—</div><div class="sa-score-lbl">Signal rate</div></div>
+                </div>
+                <div class="sa-streak-row">
+                    <div class="sa-streak-dot" id="sa-sd-0"></div><div class="sa-streak-dot" id="sa-sd-1"></div><div class="sa-streak-dot" id="sa-sd-2"></div><div class="sa-streak-dot" id="sa-sd-3"></div><div class="sa-streak-dot" id="sa-sd-4"></div><div class="sa-streak-dot" id="sa-sd-5"></div><div class="sa-streak-dot" id="sa-sd-6"></div>
+                    <span class="sa-streak-label">Last 7 days</span>
+                </div>
+                <div class="sa-noise-banner" id="sa-noise-banner">⚠ <span id="sa-noise-msg">You're spending time on noise. Redirect to your signals.</span></div>
+                <div class="sa-section-label">Check in with your agent</div>
+                <div class="sa-chat-messages" id="sa-chat-messages"></div>
+                <div class="sa-chat-input-row">
+                    <input type="text" id="sa-chat-input" placeholder="Ask anything or report your progress..." onkeydown="if(event.key==='Enter')window.saSendChat()">
+                    <button onclick="window.saSendChat()" id="sa-send-btn">Send →</button>
+                </div>
+                <div class="sa-eod-btn-row">
+                    <button class="sa-eod-btn" onclick="window.saMorningBriefing()">☀ Morning briefing</button>
+                    <button class="sa-eod-btn primary" onclick="window.saEndOfDay()">☾ End of day</button>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -386,7 +534,7 @@
             { id: 'misc', title: 'Miscellaneous', items: ['Bank Fees', 'Postage', 'Microgreens', 'Other'] }
         ];
 
-        let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], bills: [], simData: { P1:'', R:'', E:'', P2:'' } };
+        let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], bills: [], simData: { P1:'', R:'', E:'', P2:'' }, signalAgent: { signals:['','',''], done:[false,false,false], streak:[false,false,false,false,false,false,false], history:[], date:'' } };
         let app, db, auth, userRef, breatheInterval, currentNoteId = null, defragDebounce, budgetDebounce;
 
         // UTILS
@@ -404,6 +552,7 @@
                 if(id==='SIMULATOR') initSim();
                 if(id==='NOTEPAD') renderNotepad();
                 if(id==='BILLS') renderBills();
+                if(id==='SIGNAL') initSignalAgent();
                 if(id!=='CALIBRATION') window.stopBreathe();
                 refreshIcons();
             },
@@ -644,8 +793,132 @@
                 if(!v) return alert("Type draft first");
                 const res=await callGemini(`Refine into stoic maxim: ${v}`);
                 document.getElementById('moral-input').value=res;
+            },
+
+            // --- SIGNAL AGENT ---
+            saAutoResize: (el) => {
+                el.style.height = 'auto';
+                el.style.height = el.scrollHeight + 'px';
+                const i = parseInt(el.id.replace('sa-sig-', ''));
+                appState.signalAgent.signals[i] = el.value;
+                document.getElementById('sa-card-' + i).classList.toggle('active', el.value.length > 0);
+                clearTimeout(window._saDebounce);
+                window._saDebounce = setTimeout(saveData, 1000);
+            },
+            saToggleDone: (i) => {
+                const sa = appState.signalAgent;
+                if (!sa.signals[i].trim()) { saFlashNoise("Set your signal first before marking it complete."); return; }
+                sa.done[i] = !sa.done[i];
+                saMarkDone(i);
+                saUpdateScore();
+                saveData();
+                if (sa.done[i]) saAddMsg('agent', saCompletionMsg(i, sa.done.filter(Boolean).length));
+            },
+            saSendChat: async () => {
+                const input = document.getElementById('sa-chat-input');
+                const msg = input.value.trim();
+                if (!msg) return;
+                input.value = '';
+                document.getElementById('sa-send-btn').disabled = true;
+                saAddMsg('user', msg);
+                saAddTyping();
+                const sa = appState.signalAgent;
+                const ctx = sa.signals.map((s,i)=>`Signal ${i+1}: "${s||'(not set)'}" - ${sa.done[i]?'DONE':'pending'}`).join('\n');
+                const reply = await callGemini(`You are Signal Agent, a brutally focused accountability coach. The user's 3 daily signals:\n${ctx}\n\nKeep your reply SHORT (2-4 sentences). Be direct, tough-love, energising. Redirect noise to signals. Celebrate wins without fluff.\n\nUser says: ${msg}`);
+                saRemoveTyping();
+                saAddMsg('agent', reply || "Stay on the signal.");
+                if (msg.toLowerCase().includes('noise') || msg.toLowerCase().includes('distract')) saFlashNoise("Noise detected. Your signals are waiting.");
+                document.getElementById('sa-send-btn').disabled = false;
+            },
+            saMorningBriefing: async () => {
+                saAddMsg('user', '[Morning briefing]');
+                saAddTyping();
+                document.getElementById('sa-send-btn').disabled = true;
+                const reply = await callGemini("You are Signal Agent. Give a sharp 3-sentence morning briefing: 1) set a high-focus mindset, 2) remind that only 3 signals matter today, 3) ask a powerful question to clarify what those 3 things are. Be direct, no fluff.");
+                saRemoveTyping();
+                saAddMsg('agent', reply || "New day. What are the 3 things that—if done—make everything else easier or irrelevant? Set them now.");
+                document.getElementById('sa-send-btn').disabled = false;
+            },
+            saEndOfDay: async () => {
+                const sa = appState.signalAgent;
+                const done = sa.done.filter(Boolean).length;
+                const ctx = sa.signals.map((s,i)=>`Signal ${i+1}: "${s||'(not set)'}" - ${sa.done[i]?'DONE':'pending'}`).join('\n');
+                saAddMsg('user', '[End of day review]');
+                saAddTyping();
+                document.getElementById('sa-send-btn').disabled = true;
+                const reply = await callGemini(`You are Signal Agent. End of day review.\nSignals:\n${ctx}\nCompleted: ${done}/3\n\nGive a powerful 3-4 sentence end-of-day review. Acknowledge wins, call out incomplete with honesty (not harshness), and set the mindset for tomorrow.`);
+                saRemoveTyping();
+                saAddMsg('agent', reply || (done===3 ? "Full signal day. You executed. Log this win." : `${done}/3 signals done. The gap is data, not failure. Reset tomorrow with clarity.`));
+                if (done === 3) { sa.streak[6] = true; saUpdateStreak(); saveData(); }
+                document.getElementById('sa-send-btn').disabled = false;
             }
         });
+
+        // --- SIGNAL AGENT HELPERS ---
+        function initSignalAgent() {
+            const sa = appState.signalAgent;
+            const today = new Date().toDateString();
+            if (sa.date !== today) { sa.signals=['','','']; sa.done=[false,false,false]; sa.history=[]; sa.date=today; }
+            document.getElementById('sa-today-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+            for (let i=0;i<3;i++) {
+                const el=document.getElementById('sa-sig-'+i);
+                el.value=sa.signals[i]; el.style.height='auto'; el.style.height=el.scrollHeight+'px';
+                document.getElementById('sa-card-'+i).classList.toggle('active', sa.signals[i].length>0);
+                saMarkDone(i);
+            }
+            saUpdateScore(); saUpdateStreak();
+            const box=document.getElementById('sa-chat-messages'); box.innerHTML='';
+            sa.history.forEach(m=>saRenderMsg(m.role,m.text));
+            if(sa.history.length===0) saAddMsg('agent', saGreeting());
+        }
+        function saGreeting() {
+            const h=new Date().getHours();
+            if(h<12) return "Good morning. Time to set your three signals. What are the three things that—if completed today—will move your mission forward?";
+            if(h<17) return "Good afternoon. Your signals are loaded. Stay in the signal, eliminate the noise. What do you need to push through?";
+            return "Good evening. Time for honest reflection. Let's review your signals together.";
+        }
+        function saMarkDone(i) { document.getElementById('sa-card-'+i).classList.toggle('done', appState.signalAgent.done[i]); }
+        function saUpdateScore() {
+            const sa=appState.signalAgent;
+            const done=sa.done.filter(Boolean).length;
+            document.getElementById('sa-score-complete').textContent=done;
+            document.getElementById('sa-completion-status').textContent=done+' of 3 complete';
+            const hasSigs=sa.signals.filter(s=>s.trim()).length;
+            document.getElementById('sa-score-rate').textContent=hasSigs>0?Math.round((done/hasSigs)*100)+'%':'—';
+        }
+        function saUpdateStreak() {
+            const streak=appState.signalAgent.streak;
+            let count=0;
+            for(let i=streak.length-1;i>=0;i--){if(streak[i])count++;else break;}
+            document.getElementById('sa-score-streak').textContent=count;
+            for(let i=0;i<7;i++){const d=document.getElementById('sa-sd-'+i);if(d)d.classList.toggle('active',!!streak[i]);}
+        }
+        function saFlashNoise(msg) {
+            const el=document.getElementById('sa-noise-banner');
+            document.getElementById('sa-noise-msg').textContent=msg;
+            el.classList.add('visible');
+            setTimeout(()=>el.classList.remove('visible'),3500);
+        }
+        function saCompletionMsg(i, total) {
+            if(total===3) return "All three signals complete. You dominated today. Log your reflection with the EOD review.";
+            if(total===2) return "Two down. One signal left — close it out.";
+            return `Signal ${i+1} done. Momentum building. Keep going.`;
+        }
+        function saAddMsg(role, text) { saRenderMsg(role,text); appState.signalAgent.history.push({role,text}); }
+        function saRenderMsg(role, text) {
+            const box=document.getElementById('sa-chat-messages');
+            const div=document.createElement('div'); div.className='sa-msg '+role;
+            const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+            div.innerHTML='<div class="sa-msg-avatar">'+(role==='agent'?'SA':'You')+'</div><div><div class="sa-msg-bubble">'+text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div><div class="sa-msg-time">'+now+'</div></div>';
+            box.appendChild(div); box.scrollTop=box.scrollHeight;
+        }
+        function saAddTyping() {
+            const box=document.getElementById('sa-chat-messages');
+            const div=document.createElement('div'); div.className='sa-msg agent'; div.id='sa-typing-indicator';
+            div.innerHTML='<div class="sa-msg-avatar">SA</div><div class="sa-typing"><span></span><span></span><span></span></div>';
+            box.appendChild(div); box.scrollTop=box.scrollHeight;
+        }
+        function saRemoveTyping(){const el=document.getElementById('sa-typing-indicator');if(el)el.remove();}
 
         // --- HELPERS ---
         function ensureDefrag(d) { if(!appState.defragHistory[d]) appState.defragHistory[d]=[{text:'',done:false},{text:'',done:false},{text:'',done:false}]; }
@@ -859,6 +1132,7 @@
             if(!appState.moralCodes) appState.moralCodes = []; 
             if(!appState.notepad) appState.notepad = { notes: [], folders: ['All', 'Personal', 'Work', 'Ideas'], activeFolder: 'All' };
             if(!appState.bills) appState.bills = [];
+            if(!appState.signalAgent) appState.signalAgent = { signals:['','',''], done:[false,false,false], streak:[false,false,false,false,false,false,false], history:[], date:'' };
             refreshUI();
         }
         function wipeDataView() {
@@ -874,6 +1148,79 @@
             if(!document.getElementById('screen-BILLS').classList.contains('hidden')) renderBills();
             calculateTotals();
             refreshIcons();
+        }
+
+        // --- NOTIFICATIONS ---
+        function msUntil(hour, minute) {
+            const now = new Date();
+            const target = new Date();
+            target.setHours(hour, minute, 0, 0);
+            if (target <= now) target.setDate(target.getDate() + 1);
+            return target - now;
+        }
+
+        function pushNotif(title, body, screen) {
+            if (Notification.permission !== 'granted') return;
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ type: 'SHOW_NOTIFICATION', title, body, screen });
+            } else {
+                new Notification(title, { body, icon: '639d7715983578b450da3fae_mintopng.png.png' });
+            }
+        }
+
+        function scheduleMorningNotif() {
+            setTimeout(() => {
+                pushNotif('☀ Good morning, Minto!', 'Time to lock in your three signals for today. What are your priorities?', 'SIGNAL');
+                scheduleMorningNotif();
+            }, msUntil(8, 30));
+        }
+
+        function scheduleEveningNotif() {
+            setTimeout(() => {
+                const sa = appState.signalAgent;
+                const today = new Date().toDateString();
+                if (sa.date === today) {
+                    const pending = sa.signals.filter((s, i) => s.trim() && !sa.done[i]);
+                    if (pending.length > 0) {
+                        pushNotif('☾ Signal check-in', `You still have ${pending.length} pending signal${pending.length > 1 ? 's' : ''} today. Finish strong before you rest.`, 'SIGNAL');
+                    }
+                } else {
+                    pushNotif('☾ Signal check-in', "Did you set your signals today? Open Minto OS and lock them in.", 'SIGNAL');
+                }
+                scheduleEveningNotif();
+            }, msUntil(21, 30));
+        }
+
+        function startNotifSchedule() {
+            scheduleMorningNotif();
+            scheduleEveningNotif();
+            navigator.serviceWorker.addEventListener('message', e => {
+                if (e.data && e.data.type === 'NAVIGATE') window.showScreen(e.data.screen);
+            });
+        }
+
+        Object.assign(window, {
+            ...window,
+            requestNotifPermission: async () => {
+                const permission = await Notification.requestPermission();
+                document.getElementById('notif-banner').classList.add('hidden');
+                localStorage.setItem('notif_asked', '1');
+                if (permission === 'granted') startNotifSchedule();
+            },
+            dismissNotifBanner: () => {
+                document.getElementById('notif-banner').classList.add('hidden');
+                localStorage.setItem('notif_asked', '1');
+            }
+        });
+
+        async function setupNotifications() {
+            if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+            if (Notification.permission === 'granted') {
+                startNotifSchedule();
+            } else if (Notification.permission === 'default' && !localStorage.getItem('notif_asked')) {
+                // Show banner — iOS needs a real user tap to call requestPermission
+                setTimeout(() => document.getElementById('notif-banner').classList.remove('hidden'), 2500);
+            }
         }
 
         window.onload = function() {
@@ -908,6 +1255,7 @@
             } catch(e) { loadLocal(); }
             
             setTimeout(() => { document.getElementById('screen-BOOT').classList.add('hidden'); window.showScreen('DASHBOARD'); }, 2000);
+            setupNotifications();
         };
     </script>
 </body>
