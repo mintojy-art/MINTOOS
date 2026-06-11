@@ -1,9 +1,8 @@
-const CACHE_NAME = 'minto-os-v2';
+const CACHE_NAME = 'minto-os-v3';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/639d7715983578b450da3fae_mintopng.png',
-  '/manifest.json'
+  './index.html',
+  './639d7715983578b450da3fae_mintopng.png.png',
+  './manifest.json'
 ];
 
 self.addEventListener('install', event => {
@@ -34,8 +33,8 @@ self.addEventListener('message', event => {
     event.waitUntil(
       self.registration.showNotification(title, {
         body,
-        icon: '/639d7715983578b450da3fae_mintopng.png.png',
-        badge: '/639d7715983578b450da3fae_mintopng.png.png',
+        icon: './639d7715983578b450da3fae_mintopng.png.png',
+        badge: './639d7715983578b450da3fae_mintopng.png.png',
         data: { screen },
         requireInteraction: true,
         vibrate: [200, 100, 200]

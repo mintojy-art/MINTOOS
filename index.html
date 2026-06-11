@@ -1199,19 +1199,16 @@
             });
         }
 
-        Object.assign(window, {
-            ...window,
-            requestNotifPermission: async () => {
-                const permission = await Notification.requestPermission();
-                document.getElementById('notif-banner').classList.add('hidden');
-                localStorage.setItem('notif_asked', '1');
-                if (permission === 'granted') startNotifSchedule();
-            },
-            dismissNotifBanner: () => {
-                document.getElementById('notif-banner').classList.add('hidden');
-                localStorage.setItem('notif_asked', '1');
-            }
-        });
+        window.requestNotifPermission = async () => {
+            const permission = await Notification.requestPermission();
+            document.getElementById('notif-banner').classList.add('hidden');
+            localStorage.setItem('notif_asked', '1');
+            if (permission === 'granted') startNotifSchedule();
+        };
+        window.dismissNotifBanner = () => {
+            document.getElementById('notif-banner').classList.add('hidden');
+            localStorage.setItem('notif_asked', '1');
+        };
 
         async function setupNotifications() {
             if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
