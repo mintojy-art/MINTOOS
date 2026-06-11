@@ -157,17 +157,8 @@
             <button id="auth-btn" onclick="window.handleAuth()" class="text-xs bg-white/10 px-3 py-1.5 rounded-full text-white border border-white/10">Login</button>
         </header>
 
-        <!-- Notification permission banner (shown once) -->
-        <div id="notif-banner" class="hidden mb-3 px-4 py-3 rounded-2xl border border-[#D4F937]/30 bg-[#D4F937]/5 flex items-center justify-between gap-3 no-print">
-            <div class="flex items-center gap-2">
-                <span class="text-lg">🔔</span>
-                <span class="text-xs text-gray-300">Enable notifications for daily signal reminders</span>
-            </div>
-            <div class="flex gap-2 flex-shrink-0">
-                <button onclick="window.requestNotifPermission()" class="text-xs bg-[#D4F937] text-black font-semibold px-3 py-1.5 rounded-full">Allow</button>
-                <button onclick="window.dismissNotifBanner()" class="text-xs text-gray-500 px-2">✕</button>
-            </div>
-        </div>
+        <!-- OneSignal notification banner placeholder -->
+        <div id="notif-banner" class="hidden"></div>
 
         <main class="flex-1 flex flex-col relative">
 
@@ -1150,74 +1141,9 @@
             refreshIcons();
         }
 
-        // --- NOTIFICATIONS ---
-        function msUntil(hour, minute) {
-            const now = new Date();
-            const target = new Date();
-            target.setHours(hour, minute, 0, 0);
-            if (target <= now) target.setDate(target.getDate() + 1);
-            return target - now;
-        }
-
-        function pushNotif(title, body, screen) {
-            if (Notification.permission !== 'granted') return;
-            if (navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({ type: 'SHOW_NOTIFICATION', title, body, screen });
-            } else {
-                new Notification(title, { body, icon: '639d7715983578b450da3fae_mintopng.png.png' });
-            }
-        }
-
-        function scheduleMorningNotif() {
-            setTimeout(() => {
-                pushNotif('☀ Good morning, Minto!', 'Time to lock in your three signals for today. What are your priorities?', 'SIGNAL');
-                scheduleMorningNotif();
-            }, msUntil(8, 30));
-        }
-
-        function scheduleEveningNotif() {
-            setTimeout(() => {
-                const sa = appState.signalAgent;
-                const today = new Date().toDateString();
-                if (sa.date === today) {
-                    const pending = sa.signals.filter((s, i) => s.trim() && !sa.done[i]);
-                    if (pending.length > 0) {
-                        pushNotif('☾ Signal check-in', `You still have ${pending.length} pending signal${pending.length > 1 ? 's' : ''} today. Finish strong before you rest.`, 'SIGNAL');
-                    }
-                } else {
-                    pushNotif('☾ Signal check-in', "Did you set your signals today? Open Minto OS and lock them in.", 'SIGNAL');
-                }
-                scheduleEveningNotif();
-            }, msUntil(21, 30));
-        }
-
-        function startNotifSchedule() {
-            scheduleMorningNotif();
-            scheduleEveningNotif();
-            navigator.serviceWorker.addEventListener('message', e => {
-                if (e.data && e.data.type === 'NAVIGATE') window.showScreen(e.data.screen);
-            });
-        }
-
-        window.requestNotifPermission = async () => {
-            const permission = await Notification.requestPermission();
-            document.getElementById('notif-banner').classList.add('hidden');
-            localStorage.setItem('notif_asked', '1');
-            if (permission === 'granted') startNotifSchedule();
-        };
-        window.dismissNotifBanner = () => {
-            document.getElementById('notif-banner').classList.add('hidden');
-            localStorage.setItem('notif_asked', '1');
-        };
-
-        async function setupNotifications() {
-            if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-            if (Notification.permission === 'granted') {
-                startNotifSchedule();
-            } else if (Notification.permission === 'default' && !localStorage.getItem('notif_asked')) {
-                // Show banner — iOS needs a real user tap to call requestPermission
-                setTimeout(() => document.getElementById('notif-banner').classList.remove('hidden'), 2500);
-            }
+        // --- NOTIFICATIONS (OneSignal handles scheduling — see OneSignalSDKWorker.js) ---
+        function setupNotifications() {
+            // Placeholder — OneSignal SDK initialised via script tag once App ID is configured
         }
 
         window.onload = function() {
