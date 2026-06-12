@@ -13,6 +13,9 @@
     <link rel="apple-touch-icon" href="639d7715983578b450da3fae_mintopng.png.png">
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
+      // Keep a reference to the OneSignal instance once ready
+      window._os = null;
+
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
@@ -21,41 +24,50 @@
           serviceWorkerParam: { scope: "/MINTOOS/" },
           notifyButton: { enable: false },
           allowLocalhostAsSecureOrigin: true,
-          promptOptions: {
-            slidedown: {
-              prompts: [{
-                type: "push",
-                autoPrompt: true,
-                text: {
-                  actionMessage: "Get daily signal reminders at 8:30 AM & 9:30 PM",
-                  acceptButton: "Allow",
-                  cancelButton: "Later"
-                },
-                delay: { timeDelay: 4, pageViews: 1 }
-              }]
-            }
-          }
         });
 
+        window._os = OneSignal;
         OneSignal.User.addTag("app", "minto-os");
-
-        // Update the in-app notification button state
-        const updateNotifBtn = () => {
-          const subscribed = OneSignal.User.PushSubscription.optedIn;
-          const btn = document.getElementById('sa-notif-btn');
-          if (btn) {
-            btn.textContent = subscribed ? '🔔 Notifications On' : '🔕 Enable Notifications';
-            btn.style.opacity = subscribed ? '0.5' : '1';
-            btn.disabled = subscribed;
-          }
-        };
-        updateNotifBtn();
-        OneSignal.User.PushSubscription.addEventListener('change', updateNotifBtn);
+        window.saUpdateNotifBtn();
+        OneSignal.User.PushSubscription.addEventListener('change', window.saUpdateNotifBtn);
       });
 
+      window.saUpdateNotifBtn = function() {
+        const subscribed = window._os && window._os.User.PushSubscription.optedIn;
+        const btn = document.getElementById('sa-notif-btn');
+        if (!btn) return;
+        if (subscribed) {
+          btn.textContent = '🔔 Notifications On';
+          btn.style.opacity = '0.5';
+          btn.disabled = true;
+        } else {
+          btn.textContent = '🔕 Enable Notifications';
+          btn.style.opacity = '1';
+          btn.disabled = false;
+        }
+      };
+
+      // Called directly by button tap — must be synchronous user gesture for iOS
       window.saRequestNotification = async function() {
-        if (window.OneSignal) {
-          await OneSignal.Slidedown.promptPush({ force: true });
+        if (!('Notification' in window)) {
+          alert('Open this app from your Home Screen icon (not Safari) to enable notifications.');
+          return;
+        }
+        const current = Notification.permission;
+        if (current === 'denied') {
+          alert('Notifications are blocked. Go to: iPhone Settings → Minto OS → Notifications → Allow.');
+          return;
+        }
+        // Request native permission — works on iOS only from a real button tap
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          // Register the subscription with OneSignal
+          if (window._os) {
+            try { await window._os.User.PushSubscription.optIn(); } catch(e) {}
+          }
+          window.saUpdateNotifBtn();
+        } else {
+          alert('Notification permission not granted. Try again from Settings if needed.');
         }
       };
     </script>
