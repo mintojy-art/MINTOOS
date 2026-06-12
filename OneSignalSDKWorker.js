@@ -2,7 +2,7 @@
 importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
 
 // Offline caching (merged from sw.js so only one service worker runs)
-const CACHE_NAME = 'minto-os-v4';
+const CACHE_NAME = 'minto-os-v5';
 const ASSETS = [
   './index.html',
   './639d7715983578b450da3fae_mintopng.png.png',
