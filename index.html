@@ -11,88 +11,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Minto OS">
     <link rel="apple-touch-icon" href="639d7715983578b450da3fae_mintopng.png.png">
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      // Keep a reference to the OneSignal instance once ready
-      window._os = null;
-
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        try {
-          await OneSignal.init({
-            appId: "540f659e-8a8c-4b38-9ed2-1ed956b53e46",
-            serviceWorkerPath: "OneSignalSDKWorker.js",
-            notifyButton: { enable: false },
-            allowLocalhostAsSecureOrigin: true,
-          });
-          window._os = OneSignal;
-          OneSignal.User.addTag("app", "minto-os");
-          window.saUpdateNotifBtn();
-          OneSignal.User.PushSubscription.addEventListener('change', window.saUpdateNotifBtn);
-        } catch(e) {
-          // Store error so button can surface it
-          window._osError = e.message || String(e);
-        }
-      });
-
-      window.saUpdateNotifBtn = function() {
-        const subscribed = window._os && window._os.User.PushSubscription.optedIn;
-        const btn = document.getElementById('sa-notif-btn');
-        if (!btn) return;
-        if (subscribed) {
-          btn.textContent = '🔔 Notifications On';
-          btn.style.opacity = '0.5';
-          btn.disabled = true;
-        } else {
-          btn.textContent = '🔕 Enable Notifications';
-          btn.style.opacity = '1';
-          btn.disabled = false;
-        }
-      };
-
-      window.saRequestNotification = async function() {
-        try {
-          if (!('Notification' in window)) {
-            alert('STEP 1 FAIL: Notification API missing.\nOpen from Home Screen, not Safari.'); return;
-          }
-          alert('STEP 1 OK: permission = ' + Notification.permission);
-
-          if (Notification.permission === 'denied') {
-            alert('Blocked. Go to: Settings → Minto OS → Notifications → Allow.'); return;
-          }
-
-          const permission = await Notification.requestPermission();
-          alert('STEP 2: requestPermission() = ' + permission);
-          if (permission !== 'granted') return;
-
-          // Wait up to 6s for OneSignal to finish initialising
-          if (!window._os) {
-            alert('STEP 3: Waiting for OneSignal init...');
-            await new Promise(resolve => {
-              let t = 0;
-              const iv = setInterval(() => {
-                t += 500;
-                if (window._os || window._osError || t >= 6000) { clearInterval(iv); resolve(); }
-              }, 500);
-            });
-          }
-
-          if (window._osError) {
-            alert('STEP 3 FAIL: OneSignal init error:\n' + window._osError); return;
-          }
-          if (!window._os) {
-            alert('STEP 3 FAIL: OneSignal timed out. Check internet connection.'); return;
-          }
-          alert('STEP 3 OK: OneSignal ready.');
-
-          await window._os.User.PushSubscription.optIn();
-          alert('STEP 4 OK: Subscribed! Check OneSignal dashboard → Audience.');
-          window.saUpdateNotifBtn();
-        } catch(e) {
-          alert('ERROR: ' + e.message);
-        }
-      };
-    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest" defer></script>
     <style>
@@ -578,6 +496,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithRedirect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
         // --- CONFIG ---
         const firebaseConfig = {
@@ -608,6 +527,9 @@
 
         let appState = { streak: 0, moralCodes: [], budgetHistory: {}, currentMonth: new Date().toISOString().slice(0, 7), budgetViewMode: 'monthly', defragHistory: {}, notepad: {notes:[], folders:['All','Personal','Work','Ideas'], activeFolder:'All'}, events: [], bills: [], simData: { P1:'', R:'', E:'', P2:'' }, signalAgent: { signals:['','',''], done:[false,false,false], streak:[false,false,false,false,false,false,false], history:[], date:'', lastStreakDate:'' } };
         let app, db, auth, userRef, breatheInterval, currentNoteId = null, defragDebounce, budgetDebounce;
+        let messaging, fcmSwReg;
+        // Paste your VAPID key from Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
+        const VAPID_KEY = '';
 
         // UTILS
         function safeSetText(id, val) { const el=document.getElementById(id); if(el) el.innerText=val; }
@@ -850,9 +772,6 @@
                 const s=e.date.replace(/-/g,'')+(e.time?`T${e.time.replace(':','')}00`:'');
                 window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.title)}&dates=${s}/${s}`, '_blank');
             },
-            addMoral: () => { const v=document.getElementById('moral-input').value; if(v){ appState.moralCodes.push({text:v,checked:false}); saveData(); renderMoral(); document.getElementById('moral-input').value=''; } },
-            delMoral: (i) => { appState.moralCodes.splice(i,1); saveData(); renderMoral(); },
-            toggleMoral: (i) => { appState.moralCodes[i].checked=!appState.moralCodes[i].checked; saveData(); renderMoral(); },
             // --- SIGNAL AGENT ---
             saAutoResize: (el) => {
                 el.style.height = 'auto';
@@ -1227,6 +1146,53 @@
         }
 
         // --- NOTIFICATIONS (OneSignal) ---
+        // --- FCM NOTIFICATIONS ---
+        async function storeFcmToken(token) {
+            if (!db || !token) return;
+            try { await setDoc(doc(db, 'fcm_tokens', token), { token, uid: auth?.currentUser?.uid || 'anon', updatedAt: new Date().toISOString() }); } catch(e) { console.warn('FCM token store failed', e); }
+        }
+
+        window.saUpdateNotifBtn = function() {
+            const btn = document.getElementById('sa-notif-btn');
+            if (!btn) return;
+            const hasToken = !!localStorage.getItem('fcm_token');
+            const granted = 'Notification' in window && Notification.permission === 'granted';
+            if (hasToken && granted) {
+                btn.textContent = '🔔 Notifications On';
+                btn.style.opacity = '0.6';
+                btn.disabled = true;
+            } else {
+                btn.textContent = '🔕 Enable Notifications';
+                btn.style.opacity = '1';
+                btn.disabled = false;
+            }
+        };
+
+        window.saRequestNotification = async function() {
+            const btn = document.getElementById('sa-notif-btn');
+            try {
+                if (!('Notification' in window)) { alert('Notifications not supported.\nPlease open Minto OS from your Home Screen icon, not Safari.'); return; }
+                if (Notification.permission === 'denied') { alert('Notifications are blocked.\nGo to: Settings → Minto OS → Notifications → Allow.'); return; }
+                if (btn) { btn.textContent = 'Enabling…'; btn.disabled = true; }
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') { window.saUpdateNotifBtn(); return; }
+                if (!fcmSwReg) { alert('Service worker not ready. Try again in a moment.'); window.saUpdateNotifBtn(); return; }
+                if (!messaging) { alert('Firebase Messaging not ready. Try again.'); window.saUpdateNotifBtn(); return; }
+                const tokenOpts = { serviceWorkerRegistration: fcmSwReg };
+                if (VAPID_KEY) tokenOpts.vapidKey = VAPID_KEY;
+                const token = await getToken(messaging, tokenOpts);
+                if (!token) { alert('Could not get push token. Make sure you opened the app from the Home Screen icon.'); window.saUpdateNotifBtn(); return; }
+                localStorage.setItem('fcm_token', token);
+                await storeFcmToken(token);
+                window.saUpdateNotifBtn();
+                alert('✅ Notifications enabled! You will receive morning reminders at 8:30 AM and evening check-ins at 9:30 PM.');
+            } catch(e) {
+                console.error('FCM error', e);
+                alert('Error enabling notifications: ' + (e.message || e));
+                window.saUpdateNotifBtn();
+            }
+        };
+
         function setupNotifications() {
             // Handle deep-link from notification tap: ?screen=SIGNAL
             const urlParams = new URLSearchParams(window.location.search);
@@ -1248,20 +1214,39 @@
                          else if (err.code == 'unimplemented') { console.log('No browser support'); }
                     });
 
-                    onAuthStateChanged(auth, (u) => {
+                    // Init FCM messaging and register service worker
+                    try {
+                        messaging = getMessaging(app);
+                        if ('serviceWorker' in navigator) {
+                            navigator.serviceWorker.register('./firebase-messaging-sw.js')
+                                .then(reg => { fcmSwReg = reg; window.saUpdateNotifBtn(); })
+                                .catch(e => console.warn('SW register failed', e));
+                        }
+                    } catch(e) { console.warn('FCM init failed', e); }
+
+                    onAuthStateChanged(auth, async (u) => {
                         if(u) {
                             safeSetText('system-status-text', "Online");
                             const ind = document.getElementById('system-status-indicator'); if(ind) ind.className = "w-2 h-2 bg-[var(--lime-accent)] rounded-full";
                             document.getElementById('auth-btn').innerHTML = '<i data-lucide="log-out" class="w-5 h-5"></i>';
                             userRef = doc(db, "users", u.uid);
                             onSnapshot(userRef, (s) => {
-                                if(s.exists()) { 
+                                if(s.exists()) {
                                     const cloudData = s.data();
                                     appState = { ...appState, ...cloudData };
                                     if(!Array.isArray(appState.notepad.notes)) appState.notepad.notes = [];
-                                    refreshUI(); 
+                                    refreshUI();
                                 }
                             });
+                            // Auto-refresh FCM token if permission already granted
+                            if ('Notification' in window && Notification.permission === 'granted' && messaging && fcmSwReg) {
+                                try {
+                                    const tokenOpts = { serviceWorkerRegistration: fcmSwReg };
+                                    if (VAPID_KEY) tokenOpts.vapidKey = VAPID_KEY;
+                                    const token = await getToken(messaging, tokenOpts);
+                                    if (token) { localStorage.setItem('fcm_token', token); await storeFcmToken(token); window.saUpdateNotifBtn(); }
+                                } catch(e) { console.warn('Auto FCM token refresh failed', e); }
+                            }
                         } else { wipeDataView(); }
                     });
                 } else loadLocal();

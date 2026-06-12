@@ -1,0 +1,26 @@
+name: Signal Notifications
+
+on:
+  schedule:
+    - cron: '0 3 * * *'    # 8:30 AM IST (03:00 UTC)
+    - cron: '0 16 * * *'   # 9:30 PM IST (16:00 UTC)
+  workflow_dispatch:         # allow manual trigger for testing
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: .github/scripts
+
+      - name: Send notifications
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node .github/scripts/send-notifications.js
