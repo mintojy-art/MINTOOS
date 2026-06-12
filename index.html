@@ -49,25 +49,31 @@
 
       // Called directly by button tap — must be synchronous user gesture for iOS
       window.saRequestNotification = async function() {
-        if (!('Notification' in window)) {
-          alert('Open this app from your Home Screen icon (not Safari) to enable notifications.');
-          return;
-        }
-        const current = Notification.permission;
-        if (current === 'denied') {
-          alert('Notifications are blocked. Go to: iPhone Settings → Minto OS → Notifications → Allow.');
-          return;
-        }
-        // Request native permission — works on iOS only from a real button tap
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          // Register the subscription with OneSignal
-          if (window._os) {
-            try { await window._os.User.PushSubscription.optIn(); } catch(e) {}
+        try {
+          if (!('Notification' in window)) {
+            alert('STEP 1 FAIL: Notification API not found.\nMake sure you opened from Home Screen, not Safari.'); return;
           }
+          alert('STEP 1 OK: Notification API found.\nCurrent permission: ' + Notification.permission);
+
+          if (Notification.permission === 'denied') {
+            alert('Blocked by iOS. Go to: Settings → Minto OS → Notifications → Allow.'); return;
+          }
+
+          const permission = await Notification.requestPermission();
+          alert('STEP 2: Permission result = ' + permission);
+
+          if (permission !== 'granted') return;
+
+          if (!window._os) {
+            alert('STEP 3 FAIL: OneSignal not initialised yet. Wait a moment and try again.'); return;
+          }
+          alert('STEP 3 OK: OneSignal ready. Calling optIn...');
+
+          await window._os.User.PushSubscription.optIn();
+          alert('STEP 4 OK: optIn() complete. Check OneSignal dashboard now.');
           window.saUpdateNotifBtn();
-        } else {
-          alert('Notification permission not granted. Try again from Settings if needed.');
+        } catch(e) {
+          alert('ERROR: ' + e.message);
         }
       };
     </script>
