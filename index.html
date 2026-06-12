@@ -18,18 +18,22 @@
 
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "540f659e-8a8c-4b38-9ed2-1ed956b53e46",
-          serviceWorkerPath: "/MINTOOS/OneSignalSDKWorker.js",
-          serviceWorkerParam: { scope: "/MINTOOS/" },
-          notifyButton: { enable: false },
-          allowLocalhostAsSecureOrigin: true,
-        });
-
-        window._os = OneSignal;
-        OneSignal.User.addTag("app", "minto-os");
-        window.saUpdateNotifBtn();
-        OneSignal.User.PushSubscription.addEventListener('change', window.saUpdateNotifBtn);
+        try {
+          await OneSignal.init({
+            appId: "540f659e-8a8c-4b38-9ed2-1ed956b53e46",
+            serviceWorkerPath: "/MINTOOS/OneSignalSDKWorker.js",
+            serviceWorkerParam: { scope: "/MINTOOS/" },
+            notifyButton: { enable: false },
+            allowLocalhostAsSecureOrigin: true,
+          });
+          window._os = OneSignal;
+          OneSignal.User.addTag("app", "minto-os");
+          window.saUpdateNotifBtn();
+          OneSignal.User.PushSubscription.addEventListener('change', window.saUpdateNotifBtn);
+        } catch(e) {
+          // Store error so button can surface it
+          window._osError = e.message || String(e);
+        }
       });
 
       window.saUpdateNotifBtn = function() {
@@ -47,30 +51,43 @@
         }
       };
 
-      // Called directly by button tap — must be synchronous user gesture for iOS
       window.saRequestNotification = async function() {
         try {
           if (!('Notification' in window)) {
-            alert('STEP 1 FAIL: Notification API not found.\nMake sure you opened from Home Screen, not Safari.'); return;
+            alert('STEP 1 FAIL: Notification API missing.\nOpen from Home Screen, not Safari.'); return;
           }
-          alert('STEP 1 OK: Notification API found.\nCurrent permission: ' + Notification.permission);
+          alert('STEP 1 OK: permission = ' + Notification.permission);
 
           if (Notification.permission === 'denied') {
-            alert('Blocked by iOS. Go to: Settings → Minto OS → Notifications → Allow.'); return;
+            alert('Blocked. Go to: Settings → Minto OS → Notifications → Allow.'); return;
           }
 
           const permission = await Notification.requestPermission();
-          alert('STEP 2: Permission result = ' + permission);
-
+          alert('STEP 2: requestPermission() = ' + permission);
           if (permission !== 'granted') return;
 
+          // Wait up to 6s for OneSignal to finish initialising
           if (!window._os) {
-            alert('STEP 3 FAIL: OneSignal not initialised yet. Wait a moment and try again.'); return;
+            alert('STEP 3: Waiting for OneSignal init...');
+            await new Promise(resolve => {
+              let t = 0;
+              const iv = setInterval(() => {
+                t += 500;
+                if (window._os || window._osError || t >= 6000) { clearInterval(iv); resolve(); }
+              }, 500);
+            });
           }
-          alert('STEP 3 OK: OneSignal ready. Calling optIn...');
+
+          if (window._osError) {
+            alert('STEP 3 FAIL: OneSignal init error:\n' + window._osError); return;
+          }
+          if (!window._os) {
+            alert('STEP 3 FAIL: OneSignal timed out. Check internet connection.'); return;
+          }
+          alert('STEP 3 OK: OneSignal ready.');
 
           await window._os.User.PushSubscription.optIn();
-          alert('STEP 4 OK: optIn() complete. Check OneSignal dashboard now.');
+          alert('STEP 4 OK: Subscribed! Check OneSignal dashboard → Audience.');
           window.saUpdateNotifBtn();
         } catch(e) {
           alert('ERROR: ' + e.message);
