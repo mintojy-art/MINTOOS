@@ -485,7 +485,28 @@
                     <button class="sa-eod-btn" onclick="window.saMorningBriefing()">☀ Morning briefing</button>
                     <button class="sa-eod-btn primary" onclick="window.saEndOfDay()">☾ End of day</button>
                 </div>
-                <button id="sa-notif-btn" onclick="window.saRequestNotification()" class="mt-3 w-full py-2.5 rounded-2xl border border-white/10 text-xs text-gray-400 text-center">🔕 Enable Notifications</button>
+                <div id="sa-notif-panel" class="mt-3 rounded-2xl border border-white/10 overflow-hidden">
+                    <button id="sa-notif-btn" onclick="window.saToggleNotif()" class="w-full py-2.5 px-4 flex items-center justify-between">
+                        <span id="sa-notif-label" class="text-xs text-gray-400">🔕 Enable Notifications</span>
+                        <span id="sa-notif-chevron" class="text-gray-500 text-xs hidden">▾</span>
+                    </button>
+                    <div id="sa-notif-times" class="hidden border-t border-white/10 px-4 py-3 space-y-2.5">
+                        <div class="flex gap-2.5">
+                            <div class="flex-1">
+                                <div class="text-[10px] text-gray-500 mb-1.5">☀️ Morning</div>
+                                <input type="time" id="sa-notif-morning" value="08:30" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-[10px] text-gray-500 mb-1.5">☾ Evening</div>
+                                <input type="time" id="sa-notif-evening" value="21:30" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="window.saSaveNotifTimes()" id="sa-save-times-btn" class="flex-1 py-2 rounded-xl text-[11px] text-black font-semibold" style="background:#D4F937">Save times</button>
+                            <button onclick="window.saDisableNotif()" class="flex-1 py-2 rounded-xl text-[11px] border border-red-900/50 text-red-400">Turn off</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </main>
@@ -494,7 +515,7 @@
     <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithRedirect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
@@ -1147,33 +1168,57 @@
 
         // --- NOTIFICATIONS (OneSignal) ---
         // --- FCM NOTIFICATIONS ---
-        async function storeFcmToken(token) {
+        function localTimeToUTC(hhmm) {
+            const [h, m] = hhmm.split(':').map(Number);
+            const d = new Date(); d.setHours(h, m, 0, 0);
+            return d.getUTCHours().toString().padStart(2,'0') + ':' + d.getUTCMinutes().toString().padStart(2,'0');
+        }
+
+        async function storeFcmToken(token, times) {
             if (!db || !token) return;
-            try { await setDoc(doc(db, 'fcm_tokens', token), { token, uid: auth?.currentUser?.uid || 'anon', updatedAt: new Date().toISOString() }); } catch(e) { console.warn('FCM token store failed', e); }
+            const data = { token, uid: auth?.currentUser?.uid || 'anon', updatedAt: new Date().toISOString() };
+            if (times) { data.morningUTC = times.morningUTC; data.eveningUTC = times.eveningUTC; }
+            try { await setDoc(doc(db, 'fcm_tokens', token), data, { merge: true }); } catch(e) { console.warn('FCM token store failed', e); }
         }
 
         window.saUpdateNotifBtn = function() {
-            const btn = document.getElementById('sa-notif-btn');
-            if (!btn) return;
+            const label = document.getElementById('sa-notif-label');
+            const chevron = document.getElementById('sa-notif-chevron');
+            if (!label) return;
             const hasToken = !!localStorage.getItem('fcm_token');
             const granted = 'Notification' in window && Notification.permission === 'granted';
             if (hasToken && granted) {
-                btn.textContent = '🔔 Notifications On';
-                btn.style.opacity = '0.6';
-                btn.disabled = true;
+                label.textContent = '🔔 Notifications On';
+                label.style.color = '#1D9E75';
+                if (chevron) chevron.classList.remove('hidden');
+                const mInput = document.getElementById('sa-notif-morning');
+                const eInput = document.getElementById('sa-notif-evening');
+                if (mInput) mInput.value = localStorage.getItem('notif_morning') || '08:30';
+                if (eInput) eInput.value = localStorage.getItem('notif_evening') || '21:30';
             } else {
-                btn.textContent = '🔕 Enable Notifications';
-                btn.style.opacity = '1';
-                btn.disabled = false;
+                label.textContent = '🔕 Enable Notifications';
+                label.style.color = '';
+                if (chevron) chevron.classList.add('hidden');
+                document.getElementById('sa-notif-times')?.classList.add('hidden');
+            }
+        };
+
+        window.saToggleNotif = function() {
+            const hasToken = !!localStorage.getItem('fcm_token');
+            const granted = 'Notification' in window && Notification.permission === 'granted';
+            if (hasToken && granted) {
+                document.getElementById('sa-notif-times')?.classList.toggle('hidden');
+            } else {
+                window.saRequestNotification();
             }
         };
 
         window.saRequestNotification = async function() {
-            const btn = document.getElementById('sa-notif-btn');
+            const label = document.getElementById('sa-notif-label');
             try {
                 if (!('Notification' in window)) { alert('Notifications not supported.\nPlease open Minto OS from your Home Screen icon, not Safari.'); return; }
                 if (Notification.permission === 'denied') { alert('Notifications are blocked.\nGo to: Settings → Minto OS → Notifications → Allow.'); return; }
-                if (btn) { btn.textContent = 'Enabling…'; btn.disabled = true; }
+                if (label) { label.textContent = 'Enabling…'; }
                 const permission = await Notification.requestPermission();
                 if (permission !== 'granted') { window.saUpdateNotifBtn(); return; }
                 if (!fcmSwReg) { alert('Service worker not ready. Try again in a moment.'); window.saUpdateNotifBtn(); return; }
@@ -1183,14 +1228,42 @@
                 const token = await getToken(messaging, tokenOpts);
                 if (!token) { alert('Could not get push token. Make sure you opened the app from the Home Screen icon.'); window.saUpdateNotifBtn(); return; }
                 localStorage.setItem('fcm_token', token);
-                await storeFcmToken(token);
+                if (!localStorage.getItem('notif_morning')) localStorage.setItem('notif_morning', '08:30');
+                if (!localStorage.getItem('notif_evening')) localStorage.setItem('notif_evening', '21:30');
+                await storeFcmToken(token, {
+                    morningUTC: localTimeToUTC(localStorage.getItem('notif_morning')),
+                    eveningUTC: localTimeToUTC(localStorage.getItem('notif_evening'))
+                });
                 window.saUpdateNotifBtn();
-                alert('✅ Notifications enabled! You will receive morning reminders at 8:30 AM and evening check-ins at 9:30 PM.');
+                alert('✅ Notifications enabled!\nTap the button again to change your notification times.');
             } catch(e) {
                 console.error('FCM error', e);
                 alert('Error enabling notifications: ' + (e.message || e));
                 window.saUpdateNotifBtn();
             }
+        };
+
+        window.saDisableNotif = async function() {
+            const token = localStorage.getItem('fcm_token');
+            if (token && db) { try { await deleteDoc(doc(db, 'fcm_tokens', token)); } catch(e) {} }
+            localStorage.removeItem('fcm_token');
+            localStorage.removeItem('notif_morning');
+            localStorage.removeItem('notif_evening');
+            document.getElementById('sa-notif-times')?.classList.add('hidden');
+            window.saUpdateNotifBtn();
+        };
+
+        window.saSaveNotifTimes = async function() {
+            const morning = document.getElementById('sa-notif-morning')?.value || '08:30';
+            const evening = document.getElementById('sa-notif-evening')?.value || '21:30';
+            localStorage.setItem('notif_morning', morning);
+            localStorage.setItem('notif_evening', evening);
+            const token = localStorage.getItem('fcm_token');
+            if (token && db) {
+                await storeFcmToken(token, { morningUTC: localTimeToUTC(morning), eveningUTC: localTimeToUTC(evening) });
+            }
+            const btn = document.getElementById('sa-save-times-btn');
+            if (btn) { btn.textContent = 'Saved ✓'; setTimeout(() => { btn.textContent = 'Save times'; }, 1500); }
         };
 
         function setupNotifications() {
@@ -1244,7 +1317,14 @@
                                     const tokenOpts = { serviceWorkerRegistration: fcmSwReg };
                                     if (VAPID_KEY) tokenOpts.vapidKey = VAPID_KEY;
                                     const token = await getToken(messaging, tokenOpts);
-                                    if (token) { localStorage.setItem('fcm_token', token); await storeFcmToken(token); window.saUpdateNotifBtn(); }
+                                    if (token) {
+                                        localStorage.setItem('fcm_token', token);
+                                        await storeFcmToken(token, {
+                                            morningUTC: localTimeToUTC(localStorage.getItem('notif_morning') || '08:30'),
+                                            eveningUTC: localTimeToUTC(localStorage.getItem('notif_evening') || '21:30')
+                                        });
+                                        window.saUpdateNotifBtn();
+                                    }
                                 } catch(e) { console.warn('Auto FCM token refresh failed', e); }
                             }
                         } else { wipeDataView(); }

@@ -6,42 +6,59 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-async function main() {
-  const hour = new Date().getUTCHours();
-  const isMorning = hour >= 2 && hour <= 4; // 03:00 UTC = 8:30 AM IST
+function isNearTime(targetHHMM, nowH, nowM) {
+  const [th, tm] = targetHHMM.split(':').map(Number);
+  const target = th * 60 + tm;
+  const now = nowH * 60 + nowM;
+  const diff = Math.abs(target - now);
+  return diff < 15 || (1440 - diff) < 15; // within 15 min, handles midnight wrap
+}
 
-  const title = isMorning ? '☀️ Good morning!' : '☾ Signal check-in';
-  const body  = isMorning
-    ? 'Time to set your three signals. What moves the needle today?'
-    : 'Have you completed your signals today? Finish strong before you rest.';
+async function main() {
+  const now = new Date();
+  const nowH = now.getUTCHours();
+  const nowM = now.getUTCMinutes();
+  console.log(`Running at UTC ${String(nowH).padStart(2,'0')}:${String(nowM).padStart(2,'0')}`);
 
   const snap = await db.collection('fcm_tokens').get();
   if (snap.empty) { console.log('No FCM tokens found.'); return; }
 
-  const tokens = snap.docs.map(d => d.data().token).filter(Boolean);
-  console.log(`Sending to ${tokens.length} device(s)...`);
+  const morningTokens = [];
+  const eveningTokens = [];
 
-  const res = await admin.messaging().sendEachForMulticast({
-    tokens,
-    notification: { title, body },
-    webpush: {
-      fcmOptions: { link: 'https://mintojy-art.github.io/MINTOOS/?screen=SIGNAL' }
-    }
-  });
+  for (const d of snap.docs) {
+    const data = d.data();
+    if (!data.token) continue;
+    const morningUTC = data.morningUTC || '03:00'; // default: 8:30 AM IST
+    const eveningUTC = data.eveningUTC || '16:00'; // default: 9:30 PM IST
+    if (isNearTime(morningUTC, nowH, nowM)) morningTokens.push(data.token);
+    else if (isNearTime(eveningUTC, nowH, nowM)) eveningTokens.push(data.token);
+  }
 
-  console.log(`Success: ${res.successCount}  Failed: ${res.failureCount}`);
+  console.log(`Morning: ${morningTokens.length} device(s) | Evening: ${eveningTokens.length} device(s)`);
 
-  // Remove stale tokens
-  const deletes = [];
-  res.responses.forEach((r, i) => {
-    if (!r.success) {
-      const code = r.error?.code || '';
-      if (code.includes('not-registered') || code.includes('invalid-registration')) {
-        deletes.push(db.collection('fcm_tokens').doc(snap.docs[i].id).delete());
+  async function send(tokens, title, body) {
+    if (!tokens.length) return;
+    const res = await admin.messaging().sendEachForMulticast({
+      tokens,
+      notification: { title, body },
+      webpush: { fcmOptions: { link: 'https://mintojy-art.github.io/MINTOOS/?screen=SIGNAL' } }
+    });
+    console.log(`"${title}" → success: ${res.successCount}, failed: ${res.failureCount}`);
+    const deletes = res.responses.map((r, i) => {
+      if (!r.success) {
+        const code = r.error?.code || '';
+        if (code.includes('not-registered') || code.includes('invalid-registration')) {
+          const docId = snap.docs.find(d => d.data().token === tokens[i])?.id;
+          if (docId) return db.collection('fcm_tokens').doc(docId).delete();
+        }
       }
-    }
-  });
-  await Promise.all(deletes);
+    }).filter(Boolean);
+    if (deletes.length) await Promise.all(deletes);
+  }
+
+  await send(morningTokens, '☀️ Good morning!', 'Time to set your three signals. What moves the needle today?');
+  await send(eveningTokens, '☾ Signal check-in', 'Have you completed your signals today? Finish strong before you rest.');
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
