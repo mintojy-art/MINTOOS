@@ -1,17 +1,17 @@
-const admin = require('firebase-admin');
+const {initializeApp, cert} = require('firebase-admin/app');
+const {getFirestore} = require('firebase-admin/firestore');
+const {getMessaging} = require('firebase-admin/messaging');
 
-admin.initializeApp({
-  credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SA))
-});
+initializeApp({ credential: cert(JSON.parse(process.env.FIREBASE_SA)) });
 
-const db = admin.firestore();
+const db = getFirestore();
 
 function isNearTime(targetHHMM, nowH, nowM) {
   const [th, tm] = targetHHMM.split(':').map(Number);
   const target = th * 60 + tm;
   const now = nowH * 60 + nowM;
   const diff = Math.abs(target - now);
-  return diff < 15 || (1440 - diff) < 15; // within 15 min, handles midnight wrap
+  return diff < 15 || (1440 - diff) < 15;
 }
 
 async function main() {
@@ -29,8 +29,8 @@ async function main() {
   for (const d of snap.docs) {
     const data = d.data();
     if (!data.token) continue;
-    const morningUTC = data.morningUTC || '03:00'; // default: 8:30 AM IST
-    const eveningUTC = data.eveningUTC || '16:00'; // default: 9:30 PM IST
+    const morningUTC = data.morningUTC || '03:00';
+    const eveningUTC = data.eveningUTC || '16:00';
     if (isNearTime(morningUTC, nowH, nowM)) morningTokens.push(data.token);
     else if (isNearTime(eveningUTC, nowH, nowM)) eveningTokens.push(data.token);
   }
@@ -39,7 +39,7 @@ async function main() {
 
   async function send(tokens, title, body) {
     if (!tokens.length) return;
-    const res = await admin.messaging().sendEachForMulticast({
+    const res = await getMessaging().sendEachForMulticast({
       tokens,
       notification: { title, body },
       webpush: { fcmOptions: { link: 'https://mintojy-art.github.io/MINTOOS/?screen=SIGNAL' } }
