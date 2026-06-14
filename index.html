@@ -517,7 +517,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithRedirect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
         // --- CONFIG ---
         const firebaseConfig = {
@@ -1295,6 +1295,16 @@
                                 .then(reg => { fcmSwReg = reg; window.saUpdateNotifBtn(); })
                                 .catch(e => console.warn('SW register failed', e));
                         }
+                        // Show notification even when app is in foreground
+                        onMessage(messaging, (payload) => {
+                            navigator.serviceWorker.ready.then(reg => {
+                                reg.showNotification(payload.notification?.title || 'Minto OS', {
+                                    body: payload.notification?.body || '',
+                                    icon: './639d7715983578b450da3fae_mintopng.png.png',
+                                    data: { url: 'https://mintojy-art.github.io/MINTOOS/?screen=SIGNAL' }
+                                });
+                            });
+                        });
                     } catch(e) { console.warn('FCM init failed', e); }
 
                     onAuthStateChanged(auth, async (u) => {
