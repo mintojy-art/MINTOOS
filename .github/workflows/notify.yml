@@ -2,8 +2,8 @@ name: Signal Notifications
 
 on:
   schedule:
-    - cron: '0 3 * * *'   # Morning IST (08:30 AM)
-    - cron: '0 16 * * *'  # Evening IST (09:30 PM)
+    - cron: '23 19 * * *'   # Morning IST
+    - cron: '39 18 * * *'   # Evening IST
   workflow_dispatch:
 
 jobs:
