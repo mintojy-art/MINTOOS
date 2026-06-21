@@ -506,10 +506,10 @@
                             <button onclick="window.saDisableNotif()" class="flex-1 py-2 rounded-xl text-[11px] border border-red-900/50 text-red-400">Turn off</button>
                         </div>
                         <div class="border-t border-white/5 pt-2">
-                            <div class="text-[10px] text-gray-600 mb-1.5">⚙ GitHub token — paste once to enable schedule sync</div>
+                            <div class="text-[10px] text-gray-600 mb-1.5">⚙ Schedule key — paste once to sync times</div>
                             <div class="flex gap-1.5">
-                                <input type="password" id="sa-gh-token-input" placeholder="Paste token to link schedule" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-[11px] text-gray-400">
-                                <button onclick="window.saSaveGhToken()" class="px-3 py-1.5 rounded-xl text-[10px] border border-white/10 text-gray-400">Save</button>
+                                <input type="password" id="sa-schedule-key-input" placeholder="Paste schedule key" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-[11px] text-gray-400">
+                                <button onclick="window.saSaveScheduleKey()" class="px-3 py-1.5 rounded-xl text-[10px] border border-white/10 text-gray-400">Save</button>
                             </div>
                         </div>
                     </div>
@@ -1180,58 +1180,26 @@
             return d.getUTCHours().toString().padStart(2,'0') + ':' + d.getUTCMinutes().toString().padStart(2,'0');
         }
 
-        function localTimeToCron(hhmm) {
-            const utc = localTimeToUTC(hhmm);
-            const [h, m] = utc.split(':').map(Number);
-            return m + ' ' + h + ' * * *';
+        async function saUpdateCronJobSchedule(morning, evening, apiKey) {
+            const [mH, mM] = morning.split(':').map(Number);
+            const [eH, eM] = evening.split(':').map(Number);
+            const makeSchedule = (h, m) => ({ timezone: 'Asia/Kolkata', hours: [h], minutes: [m], mdays: [-1], months: [-1], wdays: [-1] });
+            const headers = { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' };
+            const [r1, r2] = await Promise.all([
+                fetch('https://api.cron-job.org/jobs/7877498', { method: 'PATCH', headers, body: JSON.stringify({ job: { schedule: makeSchedule(mH, mM) } }) }),
+                fetch('https://api.cron-job.org/jobs/7877502', { method: 'PATCH', headers, body: JSON.stringify({ job: { schedule: makeSchedule(eH, eM) } }) })
+            ]);
+            if (!r1.ok || !r2.ok) throw new Error('Schedule update failed — check your key');
         }
 
-        async function saUpdateGitHubCron(morning, evening, ghToken) {
-            const morningCron = localTimeToCron(morning);
-            const eveningCron = localTimeToCron(evening);
-            const url = 'https://api.github.com/repos/mintojy-art/MINTOOS/contents/.github/workflows/notify.yml';
-            const headers = { 'Authorization': 'token ' + ghToken, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
-            const getRes = await fetch(url, { headers });
-            if (!getRes.ok) throw new Error('GitHub error ' + getRes.status + ' — check your token');
-            const { sha } = await getRes.json();
-            const yaml = [
-                'name: Signal Notifications', '',
-                'on:',
-                '  schedule:',
-                "    - cron: '" + morningCron + "'   # Morning IST",
-                "    - cron: '" + eveningCron + "'   # Evening IST",
-                '  workflow_dispatch:', '',
-                'jobs:',
-                '  send:',
-                '    runs-on: ubuntu-latest',
-                '    steps:',
-                '      - uses: actions/checkout@v4', '',
-                '      - uses: actions/setup-node@v4',
-                '        with:',
-                "          node-version: '20'", '',
-                '      - name: Install dependencies',
-                '        run: npm install',
-                '        working-directory: .github/scripts', '',
-                '      - name: Send notifications',
-                '        env:',
-                '          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}',
-                '        run: node .github/scripts/send-notifications.js', ''
-            ].join('\n');
-            const putRes = await fetch(url, {
-                method: 'PUT', headers,
-                body: JSON.stringify({ message: 'Set notification times: ' + morning + ' & ' + evening + ' IST', content: btoa(yaml), sha })
-            });
-            if (!putRes.ok) { const e = await putRes.json(); throw new Error(e.message || 'Update failed'); }
-        }
-
-        window.saSaveGhToken = function() {
-            const input = document.getElementById('sa-gh-token-input');
-            const token = input?.value?.trim();
-            if (!token) return;
-            localStorage.setItem('gh_token', token);
+        window.saSaveScheduleKey = function() {
+            const input = document.getElementById('sa-schedule-key-input');
+            const key = input?.value?.trim();
+            if (!key) return;
+            localStorage.setItem('schedule_key', key);
             input.value = '';
-            input.placeholder = '✓ Token saved';
-            setTimeout(() => { if(input) input.placeholder = '●●● saved — paste new token to replace ●●●'; }, 1500);
+            input.placeholder = '✓ Key saved';
+            setTimeout(() => { if(input) input.placeholder = '●●● saved — paste new key to replace ●●●'; }, 1500);
         };
 
         async function storeFcmToken(token, times) {
@@ -1255,8 +1223,8 @@
                 const eInput = document.getElementById('sa-notif-evening');
                 if (mInput) mInput.value = localStorage.getItem('notif_morning') || '08:30';
                 if (eInput) eInput.value = localStorage.getItem('notif_evening') || '21:30';
-                const ghInput = document.getElementById('sa-gh-token-input');
-                if (ghInput) ghInput.placeholder = localStorage.getItem('gh_token') ? '●●● saved — paste new token to replace ●●●' : 'Paste token to link schedule';
+                const skInput = document.getElementById('sa-schedule-key-input');
+                if (skInput) skInput.placeholder = localStorage.getItem('schedule_key') ? '●●● saved — paste new key to replace ●●●' : 'Paste schedule key';
             } else {
                 label.textContent = '🔕 Enable Notifications';
                 label.style.color = '';
@@ -1325,15 +1293,15 @@
             if (fcmToken && db) {
                 await storeFcmToken(fcmToken, { morningUTC: localTimeToUTC(morning), eveningUTC: localTimeToUTC(evening) });
             }
-            const ghToken = localStorage.getItem('gh_token');
-            if (ghToken) {
+            const scheduleKey = localStorage.getItem('schedule_key');
+            if (scheduleKey) {
                 try {
                     if (btn) btn.textContent = 'Updating…';
-                    await saUpdateGitHubCron(morning, evening, ghToken);
+                    await saUpdateCronJobSchedule(morning, evening, scheduleKey);
                     if (btn) { btn.textContent = '✓ Schedule updated!'; setTimeout(() => { btn.textContent = 'Save times'; }, 2000); }
                 } catch(e) {
-                    console.error('GitHub cron update failed', e);
-                    if (btn) { btn.textContent = e.message?.includes('401') ? 'Invalid token' : 'Sync failed'; setTimeout(() => { btn.textContent = 'Save times'; }, 2500); }
+                    console.error('Schedule update failed', e);
+                    if (btn) { btn.textContent = 'Sync failed'; setTimeout(() => { btn.textContent = 'Save times'; }, 2500); }
                 }
             } else {
                 if (btn) { btn.textContent = 'Saved ✓'; setTimeout(() => { btn.textContent = 'Save times'; }, 1500); }
